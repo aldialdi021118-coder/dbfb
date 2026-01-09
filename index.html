@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FB Database Manager V4.4 (Disban Zone)</title>
+    <title>FB Database Manager V4.5 (Realtime History)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CSS TETAP SAMA DENGAN PENAMBAHAN SEDIKIT --- */
+        /* --- CSS SAMA SEPERTI SEBELUMNYA --- */
         :root { --fb-blue: #1877F2; --fb-bg: #F0F2F5; --text-primary: #050505; --text-secondary: #65676B; --nav-height: 60px; --status-gacor: #36a420; --status-warn: #f7b928; --status-disban: #fa3e3e; --danger-color: #fa3e3e; --ease-ios: cubic-bezier(0.25, 1, 0.5, 1); }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; min-height: 100vh; color: var(--text-primary); padding-bottom: calc(var(--nav-height) + 20px); overflow-x: hidden; scroll-behavior: smooth; background: url('https://t3.ftcdn.net/jpg/03/94/94/92/360_F_394949282_FOyFFN53l0juz58dXuKjzl1CQ3Ruuq90.jpg') no-repeat center center fixed; background-size: cover; }
@@ -221,6 +221,7 @@
     window.dbUtama1 = []; window.dbSecondary1 = [];
     window.dbUtama2 = []; window.dbSecondary2 = [];
     window.dbUtama3 = []; window.dbUtama4 = []; window.dbUtama5 = [];
+    window.dbHistory = []; // <-- NEW: Array global untuk history dari firebase
 
     // --- 4. BROWSER ICON MAP ---
     const browserMap = {
@@ -256,13 +257,33 @@
                 refreshAllTabs(dbObj.key);
             });
         });
+
+        // --- LISTENER KHUSUS HISTORY (REALTIME) ---
+        db.ref('history').on('value', (snapshot) => {
+            const data = snapshot.val();
+            // Ubah object firebase ke array
+            window.dbHistory = data ? Object.values(data) : [];
+            // Sort terbaru di atas
+            window.dbHistory.sort((a, b) => b.timestamp - a.timestamp);
+
+            // Jika sedang buka tab history, refresh
+            if(document.getElementById('tab-6').classList.contains('active')) {
+                renderHistoryTab();
+            }
+
+            // Jika sedang buka modal range, refresh agar tombol hijau otomatis
+            if(window.currentOpenModalParams) {
+                const p = window.currentOpenModalParams;
+                // Kita panggil ulang fungsi openRangeModal dengan parameter yg tersimpan
+                // Ini akan me-re-render grid tombol dengan data history terbaru
+                openRangeModal(p.city, p.val, p.acc, p.status, p.db);
+            }
+        });
     }
 
     startFirebaseListeners();
 
     function refreshAllTabs(updatedKey) {
-        if(updatedKey) console.log("Data Updated:", updatedKey);
-        
         // Refresh Tab 1
         if(window.currentSubTab1 === 'utama') {
             if(!window.dbUtama1 || window.dbUtama1.length === 0) showMigrationButton('list-1', 'dbUtama1');
@@ -380,7 +401,7 @@
                     </div>
                 </div>
             `;
-            // Logic card expand (sama seperti sebelumnya)
+            // Logic card expand
             const header = card.querySelector('.account-header');
             const content = card.querySelector('.account-data-container');
             header.addEventListener('click', () => {
@@ -534,22 +555,159 @@
     window.openAddCityModal = function(index, dbRefName) { window.currentEditAccountIndex = index; window.currentEditDb = dbRefName; document.getElementById('newCityName').value = ''; document.getElementById('newCityVal').value = ''; document.getElementById('addCityModal').classList.add('show'); }
     window.submitNewCity = function() { if(window.currentEditAccountIndex === -1) return; const name = document.getElementById('newCityName').value; const val = parseInt(document.getElementById('newCityVal').value); if(name && val > 0) { let targetDb = window[window.currentEditDb]; if(targetDb) { if(!targetDb[window.currentEditAccountIndex].items) targetDb[window.currentEditAccountIndex].items = []; targetDb[window.currentEditAccountIndex].items.push({ city: name, val: val }); saveToFirebase(window.currentEditDb, targetDb); } closeModal(null, 'addCityModal', true); } else alert('Mohon isi nama kota dan jumlah.'); }
 
-    // --- 10. HISTORY ---
-    window.getHistoryLog = function() { const log = localStorage.getItem('appHistoryLog'); return log ? JSON.parse(log) : []; }
-    window.saveToHistoryLog = function(entry) { const log = getHistoryLog(); log.unshift(entry); localStorage.setItem('appHistoryLog', JSON.stringify(log)); }
+    // --- 10. HISTORY (REALTIME FIREBASE) ---
+    // Fungsi check apakah range ini sudah dikerjakan (Cek dari data Firebase local)
+    window.getHistory = function(accName, city, rangeIndex) { 
+        const idToCheck = `${accName}|${city}|${rangeIndex}`;
+        const found = window.dbHistory.find(item => item.id === idToCheck);
+        return found ? `${found.date} ${found.time}` : null; 
+    }
+
+    // Fungsi Simpan ke Firebase (Bukan LocalStorage)
+    window.saveHistory = function(accName, city, rangeIndex, actualCount) { 
+        const now = new Date(); 
+        const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`; 
+        const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; 
+        
+        const newEntry = {
+            id: `${accName}|${city}|${rangeIndex}`, 
+            acc: accName, 
+            city: city, 
+            count: actualCount, 
+            range: rangeIndex, 
+            date: dateStr, 
+            time: timeStr,
+            timestamp: firebase.database.ServerValue.TIMESTAMP 
+        };
+
+        db.ref('history').push(newEntry)
+            .then(() => {
+                console.log("History tersimpan");
+                // Refresh modal jika terbuka
+                if(window.currentOpenModalParams) {
+                    const p = window.currentOpenModalParams;
+                    openRangeModal(p.city, p.val, p.acc, p.status, p.db);
+                }
+            })
+            .catch(e => alert("Gagal simpan history: " + e.message));
+    }
+
     window.toggleHistoryDate = function(headerEl) { headerEl.parentElement.classList.toggle('open'); }
-    window.renderHistoryTab = function() { const container = document.getElementById('history-container'); const emptyMsg = document.getElementById('no-history-msg'); const logs = getHistoryLog(); container.innerHTML = ''; if (logs.length === 0) { emptyMsg.style.display = 'block'; return; } emptyMsg.style.display = 'none'; const grouped = {}; logs.forEach(log => { if (!grouped[log.date]) grouped[log.date] = []; grouped[log.date].push(log); }); Object.keys(grouped).forEach((dateStr, index) => { const items = grouped[dateStr]; const itemsHTML = items.map(item => `<div class="history-item"><div class="history-icon"><i class="fas fa-check"></i></div><div class="history-content"><div class="history-title">${item.acc} - ${item.city}</div><div class="history-meta">${item.range === 'all' ? 'POSTING SEMUA' : 'Range ' + item.range}<span class="history-count">${item.count} Sukses</span></div></div><div class="history-time">${item.time}</div></div>`).join(''); const groupDiv = document.createElement('div'); groupDiv.className = 'history-date-group'; if(index === 0) groupDiv.classList.add('open'); groupDiv.innerHTML = `<div class="history-date-header" onclick="toggleHistoryDate(this)"><span>${dateStr}</span><i class="fas fa-chevron-down history-date-chevron"></i></div><div class="history-items-container">${itemsHTML}</div>`; container.appendChild(groupDiv); }); }
-    window.askClearHistory = function() { window.pendingActionType = 'clear_history'; document.getElementById('confirmTitle').innerText = "Hapus Semua Riwayat?"; document.getElementById('confirmDesc').innerText = "Tindakan ini akan menghapus daftar riwayat."; document.getElementById('confirmModal').classList.add('show'); }
-    window.clearAllHistoryData = function() { localStorage.removeItem('appHistoryLog'); const keysToRemove = []; for (let i = 0; i < localStorage.length; i++) { const key = localStorage.key(i); if (key && key.includes('|')) keysToRemove.push(key); } keysToRemove.forEach(k => localStorage.removeItem(k)); renderHistoryTab(); closeModal(null, 'confirmModal', true); }
-    window.getHistory = function(accName, city, rangeIndex) { return localStorage.getItem(`${accName}|${city}|${rangeIndex}`); }
-    window.saveHistory = function(accName, city, rangeIndex, actualCount) { const key = `${accName}|${city}|${rangeIndex}`; const now = new Date(); const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`; const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; const fullDateTime = `${dateStr} ${timeStr}`; localStorage.setItem(key, fullDateTime); saveToHistoryLog({ acc: accName, city: city, count: actualCount, range: rangeIndex, date: dateStr, time: timeStr }); }
     
-    window.openRangeModal = function(cityName, cityVal, accountName, status, dbRefName) { let rangeLimit = 20; if (dbRefName && (dbRefName === 'dbUtama3')) rangeLimit = 15; const rangesCount = Math.ceil(cityVal / rangeLimit); document.getElementById('modalTitle').innerText = cityName; document.getElementById('modalSubtitle').innerText = `${accountName} • ${cityVal} Grup (Range ${rangeLimit})`; const modalGrid = document.getElementById('modalGrid'); modalGrid.innerHTML = ''; const historyAll = getHistory(accountName, cityName, 'all'); const isAllDone = historyAll !== null; const btnAll = document.createElement('div'); btnAll.className = isAllDone ? 'range-btn btn-all-range done' : 'range-btn btn-all-range'; btnAll.innerHTML = `<span class="range-label">POSTING SEMUA</span><span class="range-desc">1 - ${cityVal} (Total ${cityVal})</span>${isAllDone ? `<div class="history-info">${historyAll}</div>` : ''}`; btnAll.onclick = () => askConfirmation(accountName, cityName, 'all', cityVal); modalGrid.appendChild(btnAll); for(let i = 1; i <= rangesCount; i++) { let min = (i-1)*rangeLimit + 1; let max = (i === rangesCount) ? cityVal : i*rangeLimit; let rangeCount = max - min + 1; const history = getHistory(accountName, cityName, i); const isDone = history !== null; const btn = document.createElement('div'); btn.className = isDone ? 'range-btn done' : 'range-btn'; btn.innerHTML = `<span class="range-label">Range ${i}</span><span class="range-desc">${min} - ${max}</span>${isDone ? `<div class="history-info">${history}</div>` : ''}`; btn.onclick = () => askConfirmation(accountName, cityName, i, rangeCount); modalGrid.appendChild(btn); } document.getElementById('rangeModal').classList.add('show'); }
-    window.pendingAction = null; window.pendingActionType = null; window.askConfirmation = function(acc, city, rangeIdx, countVal) { if (getHistory(acc, city, rangeIdx)) return; window.pendingAction = { acc, city, rangeIdx, countVal }; window.pendingActionType = 'mark_done'; document.getElementById('confirmTitle').innerText = "Konfirmasi"; document.getElementById('confirmDesc').innerText = "Tandai postingan selesai?"; document.getElementById('confirmModal').classList.add('show'); } 
-    document.getElementById('btnConfirmYes').addEventListener('click', () => { if (window.pendingActionType === 'clear_history') clearAllHistoryData(); else if (window.pendingActionType === 'mark_done' && window.pendingAction) { const { acc, city, rangeIdx, countVal } = window.pendingAction; saveHistory(acc, city, rangeIdx, countVal); closeModal(null, 'confirmModal', true); closeModal(null, 'rangeModal', true); window.pendingAction = null; } });
-    window.closeModal = function(e, modalId, force = false) { if (force || e.target.classList.contains('modal-overlay')) document.getElementById(modalId).classList.remove('show'); }
+    // Render Tab Riwayat (Mengambil dari window.dbHistory)
+    window.renderHistoryTab = function() { 
+        const container = document.getElementById('history-container'); 
+        const emptyMsg = document.getElementById('no-history-msg'); 
+        
+        const logs = window.dbHistory; 
+
+        container.innerHTML = ''; 
+        if (logs.length === 0) { emptyMsg.style.display = 'block'; return; } 
+        emptyMsg.style.display = 'none'; 
+        
+        const grouped = {}; 
+        logs.forEach(log => { if (!grouped[log.date]) grouped[log.date] = []; grouped[log.date].push(log); }); 
+        
+        Object.keys(grouped).forEach((dateStr, index) => { 
+            const items = grouped[dateStr]; 
+            const itemsHTML = items.map(item => `
+                <div class="history-item">
+                    <div class="history-icon"><i class="fas fa-check"></i></div>
+                    <div class="history-content">
+                        <div class="history-title">${item.acc} - ${item.city}</div>
+                        <div class="history-meta">${item.range === 'all' ? 'POSTING SEMUA' : 'Range ' + item.range}<span class="history-count">${item.count} Sukses</span></div>
+                    </div>
+                    <div class="history-time">${item.time}</div>
+                </div>`).join(''); 
+                
+            const groupDiv = document.createElement('div'); 
+            groupDiv.className = 'history-date-group'; 
+            if(index === 0) groupDiv.classList.add('open'); 
+            groupDiv.innerHTML = `<div class="history-date-header" onclick="toggleHistoryDate(this)"><span>${dateStr}</span><i class="fas fa-chevron-down history-date-chevron"></i></div><div class="history-items-container">${itemsHTML}</div>`; 
+            container.appendChild(groupDiv); 
+        }); 
+    }
+
+    window.askClearHistory = function() { window.pendingActionType = 'clear_history'; document.getElementById('confirmTitle').innerText = "Hapus Semua Riwayat?"; document.getElementById('confirmDesc').innerText = "Tindakan ini akan menghapus riwayat untuk SEMUA ORANG."; document.getElementById('confirmModal').classList.add('show'); }
     
-    // TAB SWITCH LOGIC (Updated for 7 tabs)
+    window.clearAllHistoryData = function() { 
+        db.ref('history').remove().then(() => { closeModal(null, 'confirmModal', true); }).catch(e => alert("Gagal hapus: " + e.message));
+    }
+
+    // Modal Range Logic 
+    window.currentOpenModalParams = null; // Simpan params saat modal dibuka agar bisa direfresh realtime
+
+    window.openRangeModal = function(cityName, cityVal, accountName, status, dbRefName) { 
+        // Simpan state saat ini
+        window.currentOpenModalParams = { city: cityName, val: cityVal, acc: accountName, status: status, db: dbRefName };
+
+        let rangeLimit = 20; 
+        if (dbRefName && (dbRefName === 'dbUtama3')) rangeLimit = 15; 
+        const rangesCount = Math.ceil(cityVal / rangeLimit); 
+        
+        document.getElementById('modalTitle').innerText = cityName; 
+        document.getElementById('modalSubtitle').innerText = `${accountName} • ${cityVal} Grup (Range ${rangeLimit})`; 
+        
+        const modalGrid = document.getElementById('modalGrid'); 
+        modalGrid.innerHTML = ''; 
+        
+        const historyAll = getHistory(accountName, cityName, 'all'); 
+        const isAllDone = historyAll !== null; 
+        
+        const btnAll = document.createElement('div'); 
+        btnAll.className = isAllDone ? 'range-btn btn-all-range done' : 'range-btn btn-all-range'; 
+        btnAll.innerHTML = `<span class="range-label">POSTING SEMUA</span><span class="range-desc">1 - ${cityVal} (Total ${cityVal})</span>${isAllDone ? `<div class="history-info">${historyAll}</div>` : ''}`; 
+        btnAll.onclick = () => askConfirmation(accountName, cityName, 'all', cityVal); 
+        modalGrid.appendChild(btnAll); 
+        
+        for(let i = 1; i <= rangesCount; i++) { 
+            let min = (i-1)*rangeLimit + 1; 
+            let max = (i === rangesCount) ? cityVal : i*rangeLimit; 
+            let rangeCount = max - min + 1; 
+            
+            const history = getHistory(accountName, cityName, i); 
+            const isDone = history !== null; 
+            
+            const btn = document.createElement('div'); 
+            btn.className = isDone ? 'range-btn done' : 'range-btn'; 
+            btn.innerHTML = `<span class="range-label">Range ${i}</span><span class="range-desc">${min} - ${max}</span>${isDone ? `<div class="history-info">${history}</div>` : ''}`; 
+            btn.onclick = () => askConfirmation(accountName, cityName, i, rangeCount); 
+            modalGrid.appendChild(btn); 
+        } 
+        document.getElementById('rangeModal').classList.add('show'); 
+    }
+
+    window.pendingAction = null; 
+    window.pendingActionType = null; 
+    
+    window.askConfirmation = function(acc, city, rangeIdx, countVal) { 
+        if (getHistory(acc, city, rangeIdx)) return; 
+        window.pendingAction = { acc, city, rangeIdx, countVal }; 
+        window.pendingActionType = 'mark_done'; 
+        document.getElementById('confirmTitle').innerText = "Konfirmasi"; 
+        document.getElementById('confirmDesc').innerText = "Tandai postingan selesai?"; 
+        document.getElementById('confirmModal').classList.add('show'); 
+    } 
+    
+    document.getElementById('btnConfirmYes').addEventListener('click', () => { 
+        if (window.pendingActionType === 'clear_history') {
+            clearAllHistoryData(); 
+        } else if (window.pendingActionType === 'mark_done' && window.pendingAction) { 
+            const { acc, city, rangeIdx, countVal } = window.pendingAction; 
+            saveHistory(acc, city, rangeIdx, countVal); 
+            closeModal(null, 'confirmModal', true); 
+            window.pendingAction = null; 
+        } 
+    });
+    
+    window.closeModal = function(e, modalId, force = false) { 
+        if (force || e.target.classList.contains('modal-overlay')) {
+            document.getElementById(modalId).classList.remove('show'); 
+            if(modalId === 'rangeModal') window.currentOpenModalParams = null;
+        }
+    }
+    
+    // TAB SWITCH LOGIC
     window.switchTab = function(n) { document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); document.getElementById('tab-'+n).classList.add('active'); document.querySelectorAll('.nav-item')[n-1].classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); if(n === 6) renderHistoryTab(); if(n === 7) refreshDisbanTab(); }
 </script>
 </body>
