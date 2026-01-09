@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FB Database Manager V4.4 (Disban Zone)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* --- CSS TETAP SAMA DENGAN PENAMBAHAN SEDIKIT --- */
+        :root { --fb-blue: #1877F2; --fb-bg: #F0F2F5; --text-primary: #050505; --text-secondary: #65676B; --nav-height: 60px; --status-gacor: #36a420; --status-warn: #f7b928; --status-disban: #fa3e3e; --danger-color: #fa3e3e; --ease-ios: cubic-bezier(0.25, 1, 0.5, 1); }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Inter', sans-serif; min-height: 100vh; color: var(--text-primary); padding-bottom: calc(var(--nav-height) + 20px); overflow-x: hidden; scroll-behavior: smooth; background: url('https://t3.ftcdn.net/jpg/03/94/94/92/360_F_394949282_FOyFFN53l0juz58dXuKjzl1CQ3Ruuq90.jpg') no-repeat center center fixed; background-size: cover; }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(240, 242, 245, 0.85); z-index: -1; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); }
+        .app-container { max-width: 550px; margin: 0 auto; padding: 15px; display: flex; flex-direction: column; transition: margin-right 0.4s var(--ease-ios), width 0.4s var(--ease-ios); }
+        .app-header { text-align: center; margin: 15px 0 15px 0; display: flex; align-items: center; justify-content: center; gap: 10px; background: rgba(255, 255, 255, 0.9); padding: 10px 20px; border-radius: 50px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); flex-shrink: 0; }
+        .app-header h2 { font-family: 'Poppins', sans-serif; font-weight: 700; color: var(--fb-blue); font-size: 20px; letter-spacing: -0.5px; margin: 0; }
+        .app-logo { font-size: 24px; color: var(--fb-blue); }
+        .sub-nav-container { display: flex; background: #e4e6eb; border-radius: 10px; padding: 4px; margin: 0 0 15px 0; position: relative; }
+        .sub-nav-btn { flex: 1; text-align: center; padding: 8px 0; font-size: 12px; font-weight: 600; color: var(--text-secondary); border-radius: 8px; cursor: pointer; transition: all 0.2s ease; position: relative; z-index: 1; }
+        .sub-nav-btn.active { background: white; color: var(--fb-blue); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .tab-content { display: none; width: 100%; } .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
+        .grid-container { display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%; }
+        .account-card { background: white; border-radius: 12px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); overflow: hidden; border: 1px solid rgba(0,0,0,0.05); transition: all 0.3s var(--ease-ios); display: flex; flex-direction: column; }
+        .account-card.status-disban .account-header { background: #fff5f5; filter: grayscale(0.6); }
+        .account-card.active { box-shadow: 0 10px 30px rgba(24, 119, 242, 0.15); border-color: rgba(24, 119, 242, 0.3); z-index: 100; }
+        .account-header { padding: 12px 15px; display: flex; align-items: center; gap: 10px; cursor: pointer; background: white; border-bottom: 1px solid transparent; flex-shrink: 0; user-select: none; }
+        .account-card.active .account-header { border-bottom: 1px solid #f0f2f5; }
+        .browser-icon-circle { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; background: #f0f2f5; }
+        .browser-icon-circle i.fa-chrome { color: #4285F4; font-size: 18px; } .browser-icon-circle i.fa-edge { color: #0078D7; font-size: 18px; } .browser-icon-circle i.fa-shield-halved { color: #FF5722; font-size: 16px; } .browser-icon-circle i.fa-vimeo-v { color: #EF3939; font-size: 16px; } .browser-icon-circle i.fa-globe { color: #65676B; font-size: 16px; }
+        .acc-info { flex: 1; } .acc-name { font-weight: 700; font-size: 14px; color: var(--text-primary); text-transform: uppercase; }
+        .status-badge { font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 4px; width: fit-content; margin-top: 2px; display: inline-flex; align-items: center; gap: 3px; }
+        .badge-gacor { background: #e7f3ff; color: #1877F2; } .badge-gacor::before { content:'●'; color:#36a420; }
+        .badge-warn { background: #fff8e1; color: #b98900; } .badge-warn::before { content:'●'; color:#f7b928; }
+        .badge-disban { background: #fee2e2; color: #fa3e3e; } .badge-disban::before { content:'●'; color:#fa3e3e; }
+        .arrow-icon { color: var(--text-secondary); font-size: 12px; transition: 0.3s; } .account-card.active .arrow-icon { transform: rotate(180deg); }
+        .account-data-container { max-height: 0; overflow: hidden; background: #ffffff; transition: max-height 0.4s var(--ease-ios); }
+        .data-grid { padding: 10px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .data-item { background: #F0F2F5; padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; cursor: pointer; transition: 0.2s; }
+        .data-item:hover { background: #e4e6eb; } .data-item:active { transform: scale(0.98); }
+        .city { font-weight: 500; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; } .val { font-weight: 700; color: var(--text-primary); }
+        .card-actions { padding: 10px; border-top: 1px solid #f0f2f5; display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn-card-action { flex: 1; padding: 8px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 80px; }
+        .btn-status { background: #FFF8E1; color: #b98900; } .btn-add { background: #E7F3FF; color: #1877F2; } .btn-edit { background: #F0F2F5; color: var(--text-secondary); }
+        .history-header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
+        .history-header-actions h3 { font-size: 16px; font-weight: 700; color: var(--text-primary); }
+        .btn-clear-history { background: #fee2e2; color: var(--danger-color); border: none; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; } .btn-clear-history:active { transform: scale(0.95); }
+        .history-list { display: flex; flex-direction: column; gap: 12px; }
+        .history-date-group { background: white; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: hidden; }
+        .history-date-header { padding: 12px 15px; background: white; display: flex; justify-content: space-between; align-items: center; font-weight: 700; font-size: 13px; color: var(--text-primary); cursor: pointer; border-bottom: 1px solid transparent; transition: 0.2s; }
+        .history-date-group.open .history-date-header { border-bottom: 1px solid #f0f2f5; background: #fafafa; color: var(--fb-blue); }
+        .history-date-chevron { font-size: 12px; color: var(--text-secondary); transition: transform 0.3s; } .history-date-group.open .history-date-chevron { transform: rotate(180deg); }
+        .history-items-container { display: none; padding: 5px 0; } .history-date-group.open .history-items-container { display: block; animation: fadeIn 0.3s; }
+        .history-item { padding: 10px 15px; border-bottom: 1px solid #f0f2f5; display: flex; align-items: center; gap: 12px; } .history-item:last-child { border-bottom: none; }
+        .history-icon { width: 32px; height: 32px; background: #e7f3ff; color: var(--fb-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        .history-content { flex: 1; } .history-title { font-size: 13px; font-weight: 600; color: var(--text-primary); } .history-meta { font-size: 11px; color: var(--text-secondary); margin-top: 1px; } .history-time { font-size: 11px; color: #1877F2; font-weight: 600; }
+        .history-count { background: #e7f3ff; padding: 2px 6px; border-radius: 4px; font-size: 10px; color: #1877F2; font-weight: 700; margin-left: 5px; }
+        .form-group { margin-bottom: 12px; text-align: left; } .form-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: block; }
+        .form-input, .form-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 13px; } .form-select { background: white; }
+        .edit-list-container { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; } .edit-item-row { display: flex; gap: 8px; align-items: center; } .edit-item-name { flex: 1; font-size: 12px; color: var(--text-secondary); } .edit-item-val { width: 70px; padding: 6px; font-size: 12px; text-align: center; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height); background: #ffffff; border-top: 1px solid #e4e6eb; display: flex; flex-direction: row; justify-content: space-around; align-items: center; z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-item { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; font-size: 20px; color: #bcc0c4; position: relative; cursor: pointer; transition: color 0.2s; } .nav-item.active { color: var(--fb-blue); }
+        .nav-item.active::after { content: ''; position: absolute; top: 0; width: 50%; height: 3px; background: var(--fb-blue); border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; }
+        .section-header-wrap { text-align: center; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; } .section-title { font-size: 14px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+        .btn-create-acc { background: var(--fb-blue); color: white; border: none; padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 600; display: flex; align-items: center; gap: 5px; cursor: pointer; } .btn-create-acc i { font-size: 10px; }
+        .empty-state { text-align: center; padding: 30px 10px; color: #999; font-size: 13px; line-height: 1.6; }
+        .btn-migration { background: #36a420; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; margin-top: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); } .btn-migration:active { transform: scale(0.95); }
+        
+        /* STYLE KHUSUS TAB DISBAN */
+        .disban-info { font-size: 10px; color: #999; margin-top: 5px; display: block; }
+        
+        .desktop-trigger { display: none; }
+        @media (min-width: 900px) { .desktop-trigger { display: block; position: fixed; top: 0; right: 0; width: 40px; height: 100vh; z-index: 2001; } body { padding-bottom: 0; overflow: hidden; } .app-container { max-width: 100%; height: 100vh; padding: 15px; margin-right: 0; } .app-header { margin: 0 0 15px 0; padding: 8px 20px; } .tab-content.active { flex: 1; display: flex; flex-direction: column; min-height: 0; } .grid-container { flex: 1; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: 100%; gap: 8px; overflow: hidden; } .account-card { height: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); } .account-header { padding: 8px; cursor: default; background: #fff; border-bottom: 1px solid #f0f2f5; flex-direction: column; text-align: center; gap: 5px; } .fb-icon-circle { width: 20px; height: 20px; font-size: 10px; margin-bottom: 0; } .acc-name { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;} .arrow-icon { display: none; } .account-data-container { max-height: none !important; flex: 1; overflow-y: auto; background: #fff; } .data-grid { grid-template-columns: 1fr; padding: 5px; gap: 4px; } .card-actions { flex-direction: column; gap: 4px; padding: 5px; } .bottom-nav { bottom: auto; left: auto; border-top: none; top: 0; right: 0; bottom: 0; width: 85px; height: 100vh; flex-direction: column; justify-content: center; align-items: stretch; background: rgba(255, 255, 255, 0.98); border-left: 1px solid #e4e6eb; transform: translateX(100%); transition: transform 0.4s; padding: 0; gap: 0; } .nav-item { width: 100%; margin: 0; border-radius: 0; font-size: 24px; } .nav-item:hover { background-color: #F2F4F7; color: var(--fb-blue); } .nav-item.active { background-color: #e7f3ff; color: var(--fb-blue); } .nav-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--fb-blue); } .nav-item.active::after { display: none; } body:has(.desktop-trigger:hover) .bottom-nav, .bottom-nav:hover { transform: translateX(0); } body:has(.desktop-trigger:hover) .app-container, body:has(.bottom-nav:hover) .app-container { margin-right: 85px; width: calc(100% - 85px); } }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 3000; display: none; justify-content: center; align-items: center; backdrop-filter: blur(2px); } .modal-overlay.show { display: flex; animation: fadeIn 0.2s; } .modal-content { background: white; width: 85%; max-width: 350px; border-radius: 12px; padding: 0; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.2); animation: zoomIn 0.2s; } .modal-header { padding: 15px; border-bottom: 1px solid #f0f2f5; text-align: center; } .modal-title { font-size: 16px; font-weight: 700; color: var(--text-primary); } .modal-subtitle { font-size: 12px; color: var(--text-secondary); } .modal-body { padding: 15px; max-height: 50vh; overflow-y: auto; }
+        .range-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; } .range-btn { background: #F0F2F5; padding: 12px; border-radius: 8px; border: none; display: flex; flex-direction: column; align-items: center; gap: 2px; cursor: pointer; transition: 0.2s; } .range-btn.done { background: #e7f3ff; border: 1px solid #1877F2; } .range-btn.done .range-label { color: #1877F2; }
+        .btn-all-range { grid-column: span 2; background: #E7F3FF; border: 1px solid transparent; margin-bottom: 5px; } .btn-all-range .range-label { color: #1877F2; font-size: 13px; } .btn-all-range.done { background: #1877F2; border-color: #1877F2; } .btn-all-range.done .range-label, .btn-all-range.done .range-desc { color: white !important; }
+        .range-label { font-size: 12px; font-weight: 600; color: var(--text-primary); } .range-desc { font-size: 10px; color: var(--text-secondary); }
+        .history-info { font-size: 9px; color: #1877F2; font-weight: 700; margin-top: 4px; padding: 2px 4px; background: rgba(255, 255, 255, 0.6); border-radius: 4px; width: 100%; text-align: center; line-height: 1.2; } .btn-all-range.done .history-info { color: #e7f3ff; background: rgba(0, 0, 0, 0.15); }
+        .btn-close, .btn-submit { width: 100%; padding: 12px; border: none; font-weight: 600; cursor: pointer; } .btn-close { background: white; color: var(--fb-blue); border-top: 1px solid #f0f2f5; } .btn-submit { background: var(--fb-blue); color: white; border-radius: 6px; margin-top: 10px; }
+        .confirm-actions { display: flex; gap: 10px; margin-top: 15px; } .btn-action { flex: 1; padding: 10px; border-radius: 6px; border: none; font-weight: 600; cursor: pointer; } .btn-yes { background: var(--fb-blue); color: white; } .btn-yes.danger { background: var(--danger-color); color: white; } .btn-no { background: #F0F2F5; color: var(--text-primary); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } } @keyframes zoomIn { from { transform: scale(0.9); } to { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div class="desktop-trigger"></div>
+
+    <div class="app-container">
+        <div class="app-header">
+            <i class="fab fa-facebook app-logo"></i>
+            <h2>Database Grup</h2>
+        </div>
+
+        <section id="tab-1" class="tab-content active">
+            <div class="section-header-wrap"><span class="section-title">Database 1</span><button class="btn-create-acc" onclick="openAddAccountModal('db1')"><i class="fas fa-plus"></i> Akun Baru</button></div>
+            <div class="sub-nav-container"><div class="sub-nav-btn active" onclick="switchSubTab1('utama')" id="btn-sub1-utama">Akun Utama</div><div class="sub-nav-btn" onclick="switchSubTab1('secondary')" id="btn-sub1-secondary">Akun Secondary</div></div>
+            <div id="list-1" class="grid-container"></div>
+        </section>
+
+        <section id="tab-2" class="tab-content">
+            <div class="section-header-wrap"><span class="section-title">Database 2</span><button class="btn-create-acc" onclick="openAddAccountModal('db2')"><i class="fas fa-plus"></i> Akun Baru</button></div>
+            <div class="sub-nav-container"><div class="sub-nav-btn active" onclick="switchSubTab2('utama')" id="btn-sub2-utama">Akun Utama</div><div class="sub-nav-btn" onclick="switchSubTab2('secondary')" id="btn-sub2-secondary">Akun Secondary</div></div>
+            <div id="list-2" class="grid-container"></div>
+        </section>
+
+        <section id="tab-3" class="tab-content">
+            <div class="section-header-wrap"><span class="section-title">Database 3</span><button class="btn-create-acc" onclick="openAddAccountModal('db3')"><i class="fas fa-plus"></i> Akun Baru</button></div>
+            <div id="list-3" class="grid-container"></div>
+        </section>
+
+        <section id="tab-4" class="tab-content">
+            <div class="section-header-wrap"><span class="section-title">Database Linux</span><button class="btn-create-acc" onclick="openAddAccountModal('db4')"><i class="fas fa-plus"></i> Akun Baru</button></div>
+            <div id="list-4" class="grid-container"></div>
+        </section>
+
+        <section id="tab-5" class="tab-content">
+            <div class="section-header-wrap"><span class="section-title">Database Fanpage</span><button class="btn-create-acc" onclick="openAddAccountModal('db5')"><i class="fas fa-plus"></i> Akun Baru</button></div>
+            <div id="list-5" class="grid-container"></div>
+        </section>
+        
+        <section id="tab-6" class="tab-content">
+            <div class="history-header-actions"><h3>Riwayat Posting</h3><button class="btn-clear-history" onclick="askClearHistory()"><i class="fas fa-trash-alt"></i> Hapus Semua</button></div>
+            <div id="history-container" class="history-list"></div><div style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;" id="no-history-msg">Belum ada riwayat postingan.</div>
+        </section>
+        
+        <section id="tab-7" class="tab-content">
+            <div class="section-header-wrap"><span class="section-title" style="color: var(--danger-color);">ZONA DISBAN (KUBURAN)</span></div>
+            <div id="list-disban" class="grid-container"></div>
+        </section>
+    </div>
+
+    <div class="modal-overlay" id="rangeModal" onclick="closeModal(event, 'rangeModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="modalTitle">Kota</div><div class="modal-subtitle" id="modalSubtitle">Detail</div></div><div class="modal-body"><div class="range-grid" id="modalGrid"></div></div><button class="btn-close" onclick="closeModal(null, 'rangeModal', true)">Tutup</button></div></div>
+    <div class="modal-overlay" id="addAccountModal" onclick="closeModal(event, 'addAccountModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title">Tambah Akun Baru</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Nama Akun</label><input type="text" id="newAccName" class="form-input" placeholder="Nama Akun"></div><div class="form-group"><label class="form-label">Status Awal</label><select id="newAccStatus" class="form-select"><option value="gacor">Gacor (Hijau)</option><option value="warn">Peringatan (Kuning)</option><option value="disban">Disban (Merah)</option></select></div><button class="btn-submit" onclick="submitNewAccount()">Buat Akun</button></div></div></div>
+    <div class="modal-overlay" id="editValueModal" onclick="closeModal(event, 'editValueModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title">Edit Jumlah Grup</div></div><div class="modal-body"><div id="editValueList" class="edit-list-container"></div><button class="btn-submit" onclick="submitValueChanges()">Simpan Perubahan</button></div></div></div>
+    <div class="modal-overlay" id="confirmModal"><div class="modal-content" style="max-width: 280px;"><div class="modal-header" style="border:none; padding-bottom:0;"><div class="modal-title" style="font-size:16px;" id="confirmTitle">Konfirmasi</div></div><div class="modal-body" style="text-align: center; padding-top:5px;"><p style="color:#65676B; font-size:13px;" id="confirmDesc">Tandai postingan selesai?</p><div class="confirm-actions"><button class="btn-action btn-no" onclick="closeModal(null, 'confirmModal', true)">Batal</button><button class="btn-action btn-yes" id="btnConfirmYes">Ya, Selesai</button></div></div></div></div>
+    <div class="modal-overlay" id="statusModal" onclick="closeModal(event, 'statusModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title">Ubah Status Akun</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Pilih Status Baru</label><select id="newStatusInput" class="form-select"><option value="gacor">Gacor (Hijau)</option><option value="warn">Peringatan (Kuning)</option><option value="disban">Disban (Merah)</option></select></div><button class="btn-submit" onclick="submitStatusChange()">Simpan Perubahan</button></div></div></div>
+    <div class="modal-overlay" id="addCityModal" onclick="closeModal(event, 'addCityModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title">Tambah Kota</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Nama Kota</label><input type="text" id="newCityName" class="form-input" placeholder="Contoh: Surabaya"></div><div class="form-group"><label class="form-label">Jumlah Grup</label><input type="number" id="newCityVal" class="form-input" placeholder="0"></div><button class="btn-submit" onclick="submitNewCity()">Tambah</button></div></div></div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab(1)"><i class="fas fa-home"></i></div>
+        <div class="nav-item" onclick="switchTab(2)"><i class="fas fa-layer-group"></i></div>
+        <div class="nav-item" onclick="switchTab(3)"><i class="fas fa-database"></i></div>
+        <div class="nav-item" onclick="switchTab(4)"><i class="fab fa-linux"></i></div>
+        <div class="nav-item" onclick="switchTab(5)"><i class="fas fa-flag"></i></div>
+        <div class="nav-item" onclick="switchTab(6)"><i class="fas fa-history"></i></div>
+        <div class="nav-item" onclick="switchTab(7)" style="color: var(--danger-color);"><i class="fas fa-ban"></i></div>
+    </nav>
+
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+
+<script>
+    // --- 1. CONFIG & INIT ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyCrzevRXiiyPQkK8aYkMXpn3c0ggQDW4vs",
+      authDomain: "databasefb-9a5c5.firebaseapp.com",
+      projectId: "databasefb-9a5c5",
+      storageBucket: "databasefb-9a5c5.firebasestorage.app",
+      messagingSenderId: "642136858434",
+      appId: "1:642136858434:web:c555f88e809c75da28f2db",
+      measurementId: "G-C0WRL4EV11"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // --- 2. DATA LAMA (HARDCODE) ---
+    const initialData = {
+        dbUtama1: [
+            {name: "ALDI", status: "gacor", items: [{ city: "Puncak", val: 77 }, { city: "Jakarta", val: 70 }, { city: "Batu", val: 64 }, { city: "Semarang", val: 62 }, { city: "Cirebon", val: 59 }, { city: "Surabaya", val: 55 }, { city: "Yogyakarta", val: 49 }, { city: "Batam", val: 48 }, { city: "Lampung", val: 45 }, { city: "Purwokerto", val: 43 }, { city: "Bandung", val: 42 }, { city: "Jambi", val: 33 }, { city: "Malang", val: 29 }, { city: "Samarinda", val: 29 }, { city: "Bali", val: 28 }, { city: "Balikpapan", val: 23 }, { city: "Banyuwangi", val: 19 }, { city: "Jember", val: 11 }, { city: "Palembang", val: 11 }, { city: "Solo", val: 10 }, { city: "Subang", val: 9 }, { city: "Medan", val: 8 }, { city: "Tawangmangu", val: 7 }, { city: "Dieng", val: 6 }, { city: "Sarangan", val: 4 }, { city: "Pangandaran", val: 3 }, { city: "Jayapura", val: 3 }, { city: "Garut", val: 3 }, { city: "Depok", val: 3 }, { city: "Makassar", val: 2 }, { city: "Wonosobo", val: 2 }, { city: "Palu", val: 1 }, { city: "Ngawi", val: 1 }, { city: "Kediri", val: 1 }]},
+            {name: "REBECCA", status: "warn", items: [{ city: "Puncak", val: 61 }, { city: "Jambi", val: 56 }, { city: "Balikpapan", val: 53 }, { city: "Bali 2", val: 52 }, { city: "Jakarta", val: 50 }, { city: "Bali 1", val: 45 }, { city: "Palembang", val: 36 }, { city: "Jogja", val: 30 }, { city: "Malang", val: 40 }, { city: "Mojokerto", val: 10 }, { city: "Malang 2", val: 44 }]},
+            {name: "NIA", status: "gacor", items: [{ city: "Semarang", val: 63 }, { city: "Puncak", val: 55 }, { city: "Surabaya", val: 52 }, { city: "Bandung", val: 51 }, { city: "Batu", val: 48 }, { city: "Balikpapan", val: 44 }, { city: "Malang", val: 41 }, { city: "Bali", val: 33 }, { city: "Yogyakarta", val: 21 }, { city: "Solo", val: 19 }, { city: "Tulungagung", val: 14 }, { city: "Palembang", val: 11 }]},
+            {name: "ASAFA", status: "gacor", items: [{ city: "Bali", val: 78 }, { city: "Surabaya", val: 74 }, { city: "Bandung", val: 46 }, { city: "Jogja", val: 41 }, { city: "Puncak", val: 41 }, { city: "Cirebon", val: 40 }, { city: "Batu", val: 37 }, { city: "Samarinda", val: 31 }, { city: "Malang", val: 26 }, { city: "Pangandaran", val: 18 }, { city: "Dieng", val: 10 }, { city: "Balikpapan", val: 9 }, { city: "Tawangmangu", val: 8 }, { city: "Makassar", val: 6 }, { city: "Solo", val: 3 }, { city: "Jakarta", val: 2 }, { city: "Ngawi", val: 2 }, { city: "Banyuwangi", val: 1 }, { city: "Garut", val: 1 }]},
+            {name: "ELAINA", status: "disban", items: [{ city: "Yogyakarta", val: 60 }, { city: "Semarang", val: 57 }, { city: "Malang", val: 51 }, { city: "Bali 1", val: 68 }, { city: "Surabaya", val: 39 }, { city: "Jambi", val: 39 }, { city: "Batu", val: 16 }, { city: "Balikpapan", val: 12 }]},
+            {name: "NAURA", status: "warn", items: [{ city: "Malang", val: 51 }, { city: "Surabaya", val: 50 }, { city: "Puncak", val: 50 }, { city: "Batu", val: 49 }, { city: "Surabaya 2", val: 49 }, { city: "Semarang", val: 42 }, { city: "Yogyakarta", val: 41 }, { city: "Balikpapan", val: 35 }, { city: "Banyuwangi", val: 33 }, { city: "Palu", val: 30 }, { city: "Dieng", val: 26 }, { city: "Jakarta", val: 11 }, { city: "Tasikmalaya", val: 10 }, { city: "Bandung", val: 10 }, { city: "Garut", val: 5 }]},
+            {name: "ELON", status: "gacor", items: [{ city: "Malang", val: 80 }, { city: "Bandung 1", val: 80 }, { city: "Tegal", val: 54 }, { city: "Semarang", val: 46 }, { city: "Jambi", val: 40 }, { city: "Palembang", val: 39 }, { city: "Samarinda", val: 37 }, { city: "Surabaya", val: 29 }, { city: "Medan", val: 26 }, { city: "Bandung 3", val: 26 }, { city: "Puncak", val: 18 }, { city: "Batu", val: 17 }]},
+            {name: "SILVI", status: "gacor", items: [{ city: "Malang", val: 52 }, { city: "Semarang", val: 52 }, { city: "Cirebon", val: 49 }, { city: "Yogyakarta", val: 45 }, { city: "Surabaya", val: 40 }, { city: "Banjarmasin", val: 34 }, { city: "Batu", val: 27 }, { city: "Klaten", val: 13 }]}
+        ],
+        dbSecondary1: [
+            {name: "MEYSA", status: "gacor", items: [{ city: "Semarang", val: 67 }, { city: "Cirebon", val: 73 }]},
+            {name: "NOEVRA", status: "gacor", items: [{ city: "Surabaya", val: 40 }, { city: "Malang 1", val: 40 }, { city: "Samarinda", val: 50 }, { city: "Balikpapan", val: 49 }, { city: "Batu", val: 25 }, { city: "Malang 2", val: 26 }, { city: "Palembang", val: 33 }]},
+            {name: "PARAMITA", status: "gacor", items: [{ city: "Jambi", val: 31 }, { city: "Surabaya", val: 76 }, { city: "Semarang", val: 84 }]},
+            {name: "IVY", status: "gacor", items: [{ city: "Malang", val: 53 }, { city: "Semarang", val: 50 }, { city: "Gorontalo", val: 46 }, { city: "Jakarta", val: 50 }, { city: "Surabaya", val: 53 }]},
+            {name: "AFKA", status: "gacor", items: [{ city: "Jambi", val: 30 }]},
+            {name: "NASYA", status: "gacor", items: [{ city: "Batu", val: 16 }, { city: "Malang 1", val: 40 }, { city: "Malang 2", val: 40 }, { city: "Medan", val: 10 }, { city: "Batam", val: 8 }, { city: "Surabaya", val: 11 }]}
+        ],
+        dbUtama2: [
+            {name: "RALIA", status: "disban", items: [{ city: "Yogyakarta", val: 72 }, { city: "Semarang", val: 68 }, { city: "Malang", val: 57 }, { city: "Palembang", val: 54 }, { city: "Surabaya", val: 53 }, { city: "Puncak", val: 49 }, { city: "Bandung", val: 45 }, { city: "Medan", val: 45 }, { city: "Batam", val: 42 }, { city: "Cirebon", val: 35 }, { city: "Batu", val: 33 }, { city: "Balikpapan", val: 26 }, { city: "Dieng", val: 17 }, { city: "Jember", val: 15 }, { city: "Samarinda", val: 14 }, { city: "Pematang Siantar", val: 14 }, { city: "Sarangan", val: 10 }, { city: "Blitar", val: 9 }, { city: "Garut", val: 6 }, { city: "Bali", val: 3 }, { city: "Solo", val: 1 }, { city: "Pangandaran", val: 1 }, { city: "Wonosobo", val: 1 }, { city: "Banyuwangi", val: 1 }]},
+            {name: "ADELIA", status: "gacor", items: [{ city: "Malang", val: 85 }, { city: "Jambi", val: 38 }, { city: "Samarinda", val: 47 }, { city: "Palembang", val: 27 }, { city: "Puncak", val: 27 }, { city: "Semarang", val: 24 }, { city: "Bekasi", val: 13 }]},
+            {name: "JANE", status: "disban", items: [{ city: "Malang", val: 125 }, { city: "Samarinda", val: 45 }, { city: "Purwokerto", val: 36 }]},
+            {name: "ADRIANA", status: "gacor", items: [{ city: "Makassar", val: 45 }, { city: "Jambi", val: 39 }, { city: "Malang", val: 33 }, { city: "Semarang", val: 54 }, { city: "Samarinda", val: 24 }, { city: "Dieng", val: 17 }, { city: "Balikpapan", val: 45 }]},
+            {name: "VERA SISILA", status: "gacor", items: [{ city: "Semarang", val: 80 }, { city: "Jakarta", val: 65 }, { city: "Palembang", val: 49 }, { city: "Samarinda", val: 47 }, { city: "Jambi", val: 25 }, { city: "Dieng", val: 18 }, { city: "Surabaya", val: 18 }]},
+            {name: "ALENA", status: "gacor", items: [{ city: "Semarang", val: 91 }, { city: "Malang", val: 64 }, { city: "BANDUNG", val: 50 }, { city: "Dieng", val: 29 }, { city: "Kediri", val: 27 }, { city: "Batam", val: 14 }]},
+            {name: "MELI", status: "warn", items: [{ city: "Puncak", val: 67 }, { city: "Jakarta 1", val: 50 }, { city: "Semarang", val: 48 }, { city: "Jakarta 2", val: 43 }, { city: "Balikpapan", val: 32 }, { city: "Tasikmalaya", val: 27 }, { city: "Batu", val: 15 }]}
+        ],
+        dbSecondary2: [
+            {name: "MEYSA", status: "gacor", items: [{ city: "Semarang", val: 67 }, { city: "Cirebon", val: 73 }]},
+            {name: "NOEVRA", status: "gacor", items: [{ city: "Surabaya", val: 40 }, { city: "Malang 1", val: 40 }, { city: "Samarinda", val: 50 }, { city: "Balikpapan", val: 49 }, { city: "Batu", val: 25 }, { city: "Malang 2", val: 26 }, { city: "Palembang", val: 33 }]},
+            {name: "PARAMITA", status: "gacor", items: [{ city: "Jambi", val: 31 }, { city: "Surabaya", val: 76 }, { city: "Semarang", val: 84 }]},
+            {name: "IVY", status: "gacor", items: [{ city: "Malang", val: 53 }, { city: "Semarang", val: 50 }, { city: "Gorontalo", val: 46 }, { city: "Jakarta", val: 50 }, { city: "Surabaya", val: 53 }]},
+            {name: "AFKA", status: "gacor", items: [{ city: "Jambi", val: 30 }]},
+            {name: "NASYA", status: "gacor", items: [{ city: "Batu", val: 16 }, { city: "Malang 1", val: 40 }, { city: "Malang 2", val: 40 }, { city: "Medan", val: 10 }, { city: "Batam", val: 8 }, { city: "Surabaya", val: 11 }]},
+            {name: "AZKA", status: "gacor", items: [{ city: "Semarang 1", val: 40 }, { city: "Semarang 2", val: 40 }, { city: "Semarang 3", val: 40 }, { city: "Balikpapan", val: 32 }, { city: "Bandung", val: 10 }]},
+            {name: "FEBRIANA FANPAGE", status: "gacor", items: [{ city: "Samarinda", val: 42 }, { city: "Semarang", val: 32 }, { city: "Malang", val: 27 }]},
+            {name: "ERIKA", status: "gacor", items: [{ city: "Samarinda", val: 50 }, { city: "Balikpapan", val: 22 }, { city: "Semarang", val: 71 }]},
+            {name: "LAVIANA", status: "gacor", items: [{ city: "Palembang", val: 60 }, { city: "Jambi", val: 34 }]},
+            {name: "IZNA", status: "gacor", items: []}
+        ],
+        dbUtama3: [
+            {name: "ALEX", status: "gacor", items: [{ city: "Jakarta", val: 63 }, { city: "Bandung", val: 57 }, { city: "Balikpapan", val: 57 }, { city: "Semarang", val: 46 }, { city: "Palembang", val: 27 }]},
+            {name: "SARAH", status: "gacor", items: [{ city: "Batu", val: 50 }, { city: "Palembang", val: 47 }, { city: "Malang", val: 46 }, { city: "Medan", val: 41 }, { city: "Pontianak", val: 34 }]},
+            {name: "TEDY", status: "gacor", items: [{ city: "Malang", val: 90 }, { city: "Tegal", val: 76 }, { city: "Mojokerto", val: 25 }, { city: "Pinang", val: 9 }]},
+            {name: "SUKI", status: "gacor", items: [{ city: "Puncak", val: 84 }, { city: "Samarinda", val: 29 }, { city: "Palembang", val: 41 }]}
+        ],
+        dbUtama4: [], 
+        dbUtama5: []
+    };
+
+    // --- 3. GLOBAL VARIABLES ---
+    window.dbUtama1 = []; window.dbSecondary1 = [];
+    window.dbUtama2 = []; window.dbSecondary2 = [];
+    window.dbUtama3 = []; window.dbUtama4 = []; window.dbUtama5 = [];
+
+    // --- 4. BROWSER ICON MAP ---
+    const browserMap = {
+        'chrome': ['REBECCA', 'NIA', 'ELON', 'ASAFA', 'SILVI', 'ELAINA', 'NAURA', 'RALIA', 'ALDI'], 
+        'brave': ['ADELIA', 'ADRIANA', 'ALENA', 'MELI', 'TEDY', 'SARAH', 'SUKI', 'ALEX'],
+        'vivaldi': ['IVY', 'AZKA', 'ERIKA', 'LAVIANA', 'NOEVRA', 'IZNA', 'MEYSA', 'PARAMITA', 'NASYA', 'FEBRIANA FANPAGE', 'AFKA'],
+        'edge': ['VERA SISILA', 'JANE', 'VERA']
+    };
+
+    function getBrowserIcon(name) {
+        const n = name.toUpperCase();
+        if (browserMap.chrome.includes(n)) return '<i class="fab fa-chrome"></i>';
+        if (browserMap.brave.includes(n)) return '<i class="fas fa-shield-halved"></i>';
+        if (browserMap.vivaldi.includes(n)) return '<i class="fab fa-vimeo-v"></i>';
+        if (browserMap.edge.includes(n)) return '<i class="fab fa-edge"></i>';
+        return '<i class="fas fa-globe"></i>';
+    }
+
+    // --- 5. FIREBASE LISTENERS (READ) ---
+    function startFirebaseListeners() {
+        const refs = [
+            { key: 'dbUtama1', var: 'dbUtama1' }, { key: 'dbSecondary1', var: 'dbSecondary1' },
+            { key: 'dbUtama2', var: 'dbUtama2' }, { key: 'dbSecondary2', var: 'dbSecondary2' },
+            { key: 'dbUtama3', var: 'dbUtama3' }, { key: 'dbUtama4', var: 'dbUtama4' },
+            { key: 'dbUtama5', var: 'dbUtama5' }
+        ];
+
+        refs.forEach(dbObj => {
+            const dbRef = db.ref(dbObj.key);
+            dbRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                window[dbObj.var] = data || [];
+                refreshAllTabs(dbObj.key);
+            });
+        });
+    }
+
+    startFirebaseListeners();
+
+    function refreshAllTabs(updatedKey) {
+        if(updatedKey) console.log("Data Updated:", updatedKey);
+        
+        // Refresh Tab 1
+        if(window.currentSubTab1 === 'utama') {
+            if(!window.dbUtama1 || window.dbUtama1.length === 0) showMigrationButton('list-1', 'dbUtama1');
+            else renderApp(window.dbUtama1, 'list-1', 'dbUtama1');
+        } else {
+            if(!window.dbSecondary1 || window.dbSecondary1.length === 0) showMigrationButton('list-1', 'dbSecondary1');
+            else renderApp(window.dbSecondary1, 'list-1', 'dbSecondary1');
+        }
+
+        // Refresh Tab 2
+        if(window.currentSubTab2 === 'utama') {
+            if(!window.dbUtama2 || window.dbUtama2.length === 0) showMigrationButton('list-2', 'dbUtama2');
+            else renderApp(window.dbUtama2, 'list-2', 'dbUtama2');
+        } else {
+            if(!window.dbSecondary2 || window.dbSecondary2.length === 0) showMigrationButton('list-2', 'dbSecondary2');
+            else renderApp(window.dbSecondary2, 'list-2', 'dbSecondary2');
+        }
+        
+        window.refreshTab3(); 
+        window.refreshTab4(); 
+        window.refreshTab5();
+        window.refreshDisbanTab(); // Refresh Tab Disban setiap ada update
+    }
+    
+    function showMigrationButton(containerId, dbKey) {
+        const container = document.getElementById(containerId);
+        const localData = initialData[dbKey];
+        if(localData && localData.length > 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    Database Online Kosong.<br>
+                    Data lama ditemukan di kode.<br>
+                    <button class="btn-migration" onclick="saveToFirebase('${dbKey}', initialData['${dbKey}'], true)">
+                        <i class="fas fa-cloud-upload-alt"></i> Upload Data Lama ke Firebase
+                    </button>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `<div class="empty-state">Data Kosong. Silahkan Tambah Akun Baru.</div>`;
+        }
+    }
+
+    // --- 6. FIREBASE UPDATE (WRITE) ---
+    window.saveToFirebase = function(dbKey, dataArray, showLoading = false) {
+        if(showLoading) { alert("Sedang mengupload... Jangan tutup halaman."); }
+        db.ref(dbKey).set(dataArray)
+            .then(() => {
+                console.log("Data tersimpan ke Firebase: " + dbKey);
+                if(showLoading) alert("SUKSES! Data berhasil diupload ke Firebase.");
+            })
+            .catch((error) => {
+                alert("GAGAL simpan ke Firebase: " + error.message);
+                console.error(error);
+            });
+    }
+
+    // --- 7. RENDER DISBAN TAB (BARU) ---
+    window.refreshDisbanTab = function() {
+        const container = document.getElementById('list-disban');
+        container.innerHTML = '';
+        let allDisban = [];
+
+        // Helper untuk mengumpulkan akun disban
+        const collect = (arr, dbRefName, label) => {
+            if(!arr) return;
+            arr.forEach((acc, idx) => {
+                if(acc.status === 'disban') {
+                    // Kita simpan info aslinya agar bisa diedit
+                    allDisban.push({ ...acc, originalIdx: idx, originalDb: dbRefName, sourceLabel: label });
+                }
+            });
+        };
+
+        collect(window.dbUtama1, 'dbUtama1', 'Db 1 Utama');
+        collect(window.dbSecondary1, 'dbSecondary1', 'Db 1 Secondary');
+        collect(window.dbUtama2, 'dbUtama2', 'Db 2 Utama');
+        collect(window.dbSecondary2, 'dbSecondary2', 'Db 2 Secondary');
+        collect(window.dbUtama3, 'dbUtama3', 'Db 3');
+        collect(window.dbUtama4, 'dbUtama4', 'Db Linux');
+        collect(window.dbUtama5, 'dbUtama5', 'Db Fanpage');
+
+        if(allDisban.length === 0) {
+            container.innerHTML = '<div class="empty-state">Aman! Tidak ada akun yang kena ban.</div>';
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        allDisban.forEach((akun) => {
+            const card = document.createElement('div');
+            card.className = 'account-card status-disban';
+            
+            let items = akun.items || [];
+            let listHTML = items.map(item => `
+                <div class="data-item" onclick="openRangeModal('${item.city}', ${item.val}, '${akun.name}', '${akun.status}', '${akun.originalDb}')">
+                    <span class="city">${item.city}</span><span class="val">${item.val}</span>
+                </div>
+            `).join('');
+
+            const browserIcon = getBrowserIcon(akun.name);
+
+            card.innerHTML = `
+                <div class="account-header">
+                    <div class="browser-icon-circle">${browserIcon}</div>
+                    <div class="acc-info">
+                        <div class="acc-name">${akun.name}</div>
+                        <span class="disban-info">Asal: ${akun.sourceLabel}</span>
+                    </div>
+                    <i class="fas fa-chevron-down arrow-icon"></i>
+                </div>
+                <div class="account-data-container">
+                    <div class="data-grid">${listHTML}</div>
+                    <div class="card-actions">
+                        <button class="btn-card-action btn-status" onclick="openStatusModal(${akun.originalIdx}, '${akun.originalDb}')"><i class="fas fa-edit"></i> Ubah Status</button>
+                        <button class="btn-card-action btn-edit" onclick="openEditValueModal(${akun.originalIdx}, '${akun.originalDb}')"><i class="fas fa-pen"></i> Edit Angka</button>
+                    </div>
+                </div>
+            `;
+            // Logic card expand (sama seperti sebelumnya)
+            const header = card.querySelector('.account-header');
+            const content = card.querySelector('.account-data-container');
+            header.addEventListener('click', () => {
+                if (window.innerWidth >= 900) return; 
+                const isActive = card.classList.contains('active');
+                requestAnimationFrame(() => {
+                    document.querySelectorAll('.account-card.active').forEach(c => {
+                         if(c !== card) { c.classList.remove('active'); c.querySelector('.account-data-container').style.maxHeight = null; }
+                    });
+                    if (!isActive) { card.classList.add('active'); setTimeout(() => { content.style.maxHeight = content.scrollHeight + "px"; setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300); }, 10); } 
+                    else { card.classList.remove('active'); content.style.maxHeight = null; }
+                });
+            });
+            fragment.appendChild(card);
+        });
+        container.appendChild(fragment);
+    }
+
+    // --- 8. LOGIC UI ---
+    window.currentEditAccountIndex = -1;
+    window.currentEditDb = null;
+    window.currentAddAccountTarget = null;
+    window.currentSubTab1 = 'utama'; 
+    window.currentSubTab2 = 'utama';
+
+    window.switchSubTab1 = function(type) {
+        window.currentSubTab1 = type;
+        document.getElementById('btn-sub1-utama').className = (type === 'utama' ? 'sub-nav-btn active' : 'sub-nav-btn');
+        document.getElementById('btn-sub1-secondary').className = (type === 'secondary' ? 'sub-nav-btn active' : 'sub-nav-btn');
+        let dataToRender = (type === 'utama') ? window.dbUtama1 : window.dbSecondary1;
+        let dbRef = (type === 'utama') ? 'dbUtama1' : 'dbSecondary1';
+        if (!dataToRender || dataToRender.length === 0) showMigrationButton('list-1', dbRef);
+        else renderApp(dataToRender, 'list-1', dbRef);
+    }
+
+    window.switchSubTab2 = function(type) {
+        window.currentSubTab2 = type;
+        document.getElementById('btn-sub2-utama').className = (type === 'utama' ? 'sub-nav-btn active' : 'sub-nav-btn');
+        document.getElementById('btn-sub2-secondary').className = (type === 'secondary' ? 'sub-nav-btn active' : 'sub-nav-btn');
+        let dataToRender = (type === 'utama') ? window.dbUtama2 : window.dbSecondary2;
+        let dbRef = (type === 'utama') ? 'dbUtama2' : 'dbSecondary2';
+        if (!dataToRender || dataToRender.length === 0) showMigrationButton('list-2', dbRef);
+        else renderApp(dataToRender, 'list-2', dbRef);
+    }
+
+    window.refreshTab3 = function() { 
+        if(!window.dbUtama3 || window.dbUtama3.length === 0) showMigrationButton('list-3', 'dbUtama3'); 
+        else renderApp(window.dbUtama3, 'list-3', 'dbUtama3'); 
+    }
+    window.refreshTab4 = function() { 
+        if(!window.dbUtama4 || window.dbUtama4.length === 0) document.getElementById('list-4').innerHTML = `<div class="empty-state">Belum ada akun Linux.</div>`; 
+        else renderApp(window.dbUtama4, 'list-4', 'dbUtama4'); 
+    }
+    window.refreshTab5 = function() { 
+        if(!window.dbUtama5 || window.dbUtama5.length === 0) document.getElementById('list-5').innerHTML = `<div class="empty-state">Belum ada data Fanpage.</div>`; 
+        else renderApp(window.dbUtama5, 'list-5', 'dbUtama5'); 
+    }
+
+    window.renderApp = function(data, containerId, dbRefName) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+
+        data.forEach((akun, index) => {
+            const card = document.createElement('div');
+            card.className = `account-card ${akun.status === 'disban' ? 'status-disban' : ''}`;
+            
+            let statusLabel = '', statusClass = '';
+            if(akun.status === 'gacor') { statusLabel = 'GACOR'; statusClass = 'badge-gacor'; }
+            else if(akun.status === 'warn') { statusLabel = 'PERINGATAN'; statusClass = 'badge-warn'; }
+            else { statusLabel = 'DISBAN'; statusClass = 'badge-disban'; }
+
+            let items = akun.items || [];
+            let listHTML = items.map(item => `
+                <div class="data-item" onclick="openRangeModal('${item.city}', ${item.val}, '${akun.name}', '${akun.status}', '${dbRefName}')">
+                    <span class="city">${item.city}</span><span class="val">${item.val}</span>
+                </div>
+            `).join('');
+
+            const browserIcon = getBrowserIcon(akun.name);
+
+            card.innerHTML = `
+                <div class="account-header">
+                    <div class="browser-icon-circle">${browserIcon}</div>
+                    <div class="acc-info"><div class="acc-name">${akun.name}</div><div class="status-badge ${statusClass}">${statusLabel}</div></div>
+                    <i class="fas fa-chevron-down arrow-icon"></i>
+                </div>
+                <div class="account-data-container">
+                    <div class="data-grid">${listHTML}</div>
+                    <div class="card-actions">
+                        <button class="btn-card-action btn-status" onclick="openStatusModal(${index}, '${dbRefName}')"><i class="fas fa-edit"></i> Ubah Status</button>
+                        <button class="btn-card-action btn-edit" onclick="openEditValueModal(${index}, '${dbRefName}')"><i class="fas fa-pen"></i> Edit Angka</button>
+                        <button class="btn-card-action btn-add" onclick="openAddCityModal(${index}, '${dbRefName}')"><i class="fas fa-plus-circle"></i> Tambah Kota</button>
+                    </div>
+                </div>
+            `;
+            const header = card.querySelector('.account-header');
+            const content = card.querySelector('.account-data-container');
+            header.addEventListener('click', () => {
+                if (window.innerWidth >= 900) return; 
+                const isActive = card.classList.contains('active');
+                requestAnimationFrame(() => {
+                    document.querySelectorAll('.account-card.active').forEach(c => {
+                        if(c !== card) { c.classList.remove('active'); c.querySelector('.account-data-container').style.maxHeight = null; }
+                    });
+                    if (!isActive) { card.classList.add('active'); setTimeout(() => { content.style.maxHeight = content.scrollHeight + "px"; setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300); }, 10); } 
+                    else { card.classList.remove('active'); content.style.maxHeight = null; }
+                });
+            });
+            fragment.appendChild(card);
+        });
+        container.appendChild(fragment);
+    }
+
+    // --- 9. MODALS & CRUD ---
+    window.openAddAccountModal = function(targetDb) { window.currentAddAccountTarget = targetDb; document.getElementById('newAccName').value = ''; document.getElementById('newAccStatus').value = 'gacor'; document.getElementById('addAccountModal').classList.add('show'); }
+
+    window.submitNewAccount = function() {
+        const name = document.getElementById('newAccName').value; const status = document.getElementById('newAccStatus').value;
+        if(!name) { alert("Nama akun harus diisi!"); return; }
+        const newAccount = { name: name.toUpperCase(), status: status, items: [] };
+        let targetArr = null; let dbKey = '';
+        if(window.currentAddAccountTarget === 'db1') { if(window.currentSubTab1 === 'utama') { targetArr = window.dbUtama1 || []; dbKey = 'dbUtama1'; } else { targetArr = window.dbSecondary1 || []; dbKey = 'dbSecondary1'; } }
+        else if(window.currentAddAccountTarget === 'db2') { if(window.currentSubTab2 === 'utama') { targetArr = window.dbUtama2 || []; dbKey = 'dbUtama2'; } else { targetArr = window.dbSecondary2 || []; dbKey = 'dbSecondary2'; } }
+        else if(window.currentAddAccountTarget === 'db3') { targetArr = window.dbUtama3 || []; dbKey = 'dbUtama3'; }
+        else if(window.currentAddAccountTarget === 'db4') { targetArr = window.dbUtama4 || []; dbKey = 'dbUtama4'; }
+        else if(window.currentAddAccountTarget === 'db5') { targetArr = window.dbUtama5 || []; dbKey = 'dbUtama5'; }
+
+        if(dbKey) { targetArr.push(newAccount); saveToFirebase(dbKey, targetArr); }
+        closeModal(null, 'addAccountModal', true);
+    }
+
+    window.openEditValueModal = function(index, dbRefName) { 
+        window.currentEditAccountIndex = index; window.currentEditDb = dbRefName; const container = document.getElementById('editValueList'); container.innerHTML = ''; 
+        let targetDb = window[dbRefName]; if(!targetDb) return; 
+        let items = targetDb[index].items || []; 
+        if(items.length === 0) container.innerHTML = '<div style="text-align:center; font-size:12px; color:#999;">Belum ada kota untuk diedit.</div>'; 
+        else items.forEach((item, idx) => { const row = document.createElement('div'); row.className = 'edit-item-row'; row.innerHTML = `<span class="edit-item-name">${item.city}</span><input type="number" class="form-input edit-item-val" id="edit_val_${idx}" value="${item.val}">`; container.appendChild(row); }); 
+        document.getElementById('editValueModal').classList.add('show'); 
+    }
+
+    window.submitValueChanges = function() { 
+        let targetDb = window[window.currentEditDb]; if(!targetDb) return; 
+        let items = targetDb[window.currentEditAccountIndex].items || []; 
+        items.forEach((item, idx) => { const el = document.getElementById(`edit_val_${idx}`); if(el) { const newVal = parseInt(el.value); if(newVal > 0) item.val = newVal; } }); 
+        saveToFirebase(window.currentEditDb, targetDb); closeModal(null, 'editValueModal', true); 
+    }
+
+    window.openStatusModal = function(index, dbRefName) { window.currentEditAccountIndex = index; window.currentEditDb = dbRefName; document.getElementById('statusModal').classList.add('show'); }
+    window.submitStatusChange = function() { if(window.currentEditAccountIndex === -1) return; let targetDb = window[window.currentEditDb]; if(targetDb) { targetDb[window.currentEditAccountIndex].status = document.getElementById('newStatusInput').value; saveToFirebase(window.currentEditDb, targetDb); } closeModal(null, 'statusModal', true); }
+    window.openAddCityModal = function(index, dbRefName) { window.currentEditAccountIndex = index; window.currentEditDb = dbRefName; document.getElementById('newCityName').value = ''; document.getElementById('newCityVal').value = ''; document.getElementById('addCityModal').classList.add('show'); }
+    window.submitNewCity = function() { if(window.currentEditAccountIndex === -1) return; const name = document.getElementById('newCityName').value; const val = parseInt(document.getElementById('newCityVal').value); if(name && val > 0) { let targetDb = window[window.currentEditDb]; if(targetDb) { if(!targetDb[window.currentEditAccountIndex].items) targetDb[window.currentEditAccountIndex].items = []; targetDb[window.currentEditAccountIndex].items.push({ city: name, val: val }); saveToFirebase(window.currentEditDb, targetDb); } closeModal(null, 'addCityModal', true); } else alert('Mohon isi nama kota dan jumlah.'); }
+
+    // --- 10. HISTORY ---
+    window.getHistoryLog = function() { const log = localStorage.getItem('appHistoryLog'); return log ? JSON.parse(log) : []; }
+    window.saveToHistoryLog = function(entry) { const log = getHistoryLog(); log.unshift(entry); localStorage.setItem('appHistoryLog', JSON.stringify(log)); }
+    window.toggleHistoryDate = function(headerEl) { headerEl.parentElement.classList.toggle('open'); }
+    window.renderHistoryTab = function() { const container = document.getElementById('history-container'); const emptyMsg = document.getElementById('no-history-msg'); const logs = getHistoryLog(); container.innerHTML = ''; if (logs.length === 0) { emptyMsg.style.display = 'block'; return; } emptyMsg.style.display = 'none'; const grouped = {}; logs.forEach(log => { if (!grouped[log.date]) grouped[log.date] = []; grouped[log.date].push(log); }); Object.keys(grouped).forEach((dateStr, index) => { const items = grouped[dateStr]; const itemsHTML = items.map(item => `<div class="history-item"><div class="history-icon"><i class="fas fa-check"></i></div><div class="history-content"><div class="history-title">${item.acc} - ${item.city}</div><div class="history-meta">${item.range === 'all' ? 'POSTING SEMUA' : 'Range ' + item.range}<span class="history-count">${item.count} Sukses</span></div></div><div class="history-time">${item.time}</div></div>`).join(''); const groupDiv = document.createElement('div'); groupDiv.className = 'history-date-group'; if(index === 0) groupDiv.classList.add('open'); groupDiv.innerHTML = `<div class="history-date-header" onclick="toggleHistoryDate(this)"><span>${dateStr}</span><i class="fas fa-chevron-down history-date-chevron"></i></div><div class="history-items-container">${itemsHTML}</div>`; container.appendChild(groupDiv); }); }
+    window.askClearHistory = function() { window.pendingActionType = 'clear_history'; document.getElementById('confirmTitle').innerText = "Hapus Semua Riwayat?"; document.getElementById('confirmDesc').innerText = "Tindakan ini akan menghapus daftar riwayat."; document.getElementById('confirmModal').classList.add('show'); }
+    window.clearAllHistoryData = function() { localStorage.removeItem('appHistoryLog'); const keysToRemove = []; for (let i = 0; i < localStorage.length; i++) { const key = localStorage.key(i); if (key && key.includes('|')) keysToRemove.push(key); } keysToRemove.forEach(k => localStorage.removeItem(k)); renderHistoryTab(); closeModal(null, 'confirmModal', true); }
+    window.getHistory = function(accName, city, rangeIndex) { return localStorage.getItem(`${accName}|${city}|${rangeIndex}`); }
+    window.saveHistory = function(accName, city, rangeIndex, actualCount) { const key = `${accName}|${city}|${rangeIndex}`; const now = new Date(); const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`; const timeStr = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`; const fullDateTime = `${dateStr} ${timeStr}`; localStorage.setItem(key, fullDateTime); saveToHistoryLog({ acc: accName, city: city, count: actualCount, range: rangeIndex, date: dateStr, time: timeStr }); }
+    
+    window.openRangeModal = function(cityName, cityVal, accountName, status, dbRefName) { let rangeLimit = 20; if (dbRefName && (dbRefName === 'dbUtama3')) rangeLimit = 15; const rangesCount = Math.ceil(cityVal / rangeLimit); document.getElementById('modalTitle').innerText = cityName; document.getElementById('modalSubtitle').innerText = `${accountName} • ${cityVal} Grup (Range ${rangeLimit})`; const modalGrid = document.getElementById('modalGrid'); modalGrid.innerHTML = ''; const historyAll = getHistory(accountName, cityName, 'all'); const isAllDone = historyAll !== null; const btnAll = document.createElement('div'); btnAll.className = isAllDone ? 'range-btn btn-all-range done' : 'range-btn btn-all-range'; btnAll.innerHTML = `<span class="range-label">POSTING SEMUA</span><span class="range-desc">1 - ${cityVal} (Total ${cityVal})</span>${isAllDone ? `<div class="history-info">${historyAll}</div>` : ''}`; btnAll.onclick = () => askConfirmation(accountName, cityName, 'all', cityVal); modalGrid.appendChild(btnAll); for(let i = 1; i <= rangesCount; i++) { let min = (i-1)*rangeLimit + 1; let max = (i === rangesCount) ? cityVal : i*rangeLimit; let rangeCount = max - min + 1; const history = getHistory(accountName, cityName, i); const isDone = history !== null; const btn = document.createElement('div'); btn.className = isDone ? 'range-btn done' : 'range-btn'; btn.innerHTML = `<span class="range-label">Range ${i}</span><span class="range-desc">${min} - ${max}</span>${isDone ? `<div class="history-info">${history}</div>` : ''}`; btn.onclick = () => askConfirmation(accountName, cityName, i, rangeCount); modalGrid.appendChild(btn); } document.getElementById('rangeModal').classList.add('show'); }
+    window.pendingAction = null; window.pendingActionType = null; window.askConfirmation = function(acc, city, rangeIdx, countVal) { if (getHistory(acc, city, rangeIdx)) return; window.pendingAction = { acc, city, rangeIdx, countVal }; window.pendingActionType = 'mark_done'; document.getElementById('confirmTitle').innerText = "Konfirmasi"; document.getElementById('confirmDesc').innerText = "Tandai postingan selesai?"; document.getElementById('confirmModal').classList.add('show'); } 
+    document.getElementById('btnConfirmYes').addEventListener('click', () => { if (window.pendingActionType === 'clear_history') clearAllHistoryData(); else if (window.pendingActionType === 'mark_done' && window.pendingAction) { const { acc, city, rangeIdx, countVal } = window.pendingAction; saveHistory(acc, city, rangeIdx, countVal); closeModal(null, 'confirmModal', true); closeModal(null, 'rangeModal', true); window.pendingAction = null; } });
+    window.closeModal = function(e, modalId, force = false) { if (force || e.target.classList.contains('modal-overlay')) document.getElementById(modalId).classList.remove('show'); }
+    
+    // TAB SWITCH LOGIC (Updated for 7 tabs)
+    window.switchTab = function(n) { document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); document.getElementById('tab-'+n).classList.add('active'); document.querySelectorAll('.nav-item')[n-1].classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); if(n === 6) renderHistoryTab(); if(n === 7) refreshDisbanTab(); }
+</script>
+</body>
+</html>
