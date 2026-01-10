@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FB Database Manager V4.5 (Realtime History)</title>
+    <title>FB Database Manager V4.6 (With Delete Feature)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* --- CSS SAMA SEPERTI SEBELUMNYA --- */
+        /* --- CSS UTAMA --- */
         :root { --fb-blue: #1877F2; --fb-bg: #F0F2F5; --text-primary: #050505; --text-secondary: #65676B; --nav-height: 60px; --status-gacor: #36a420; --status-warn: #f7b928; --status-disban: #fa3e3e; --danger-color: #fa3e3e; --ease-ios: cubic-bezier(0.25, 1, 0.5, 1); }
         * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Inter', sans-serif; min-height: 100vh; color: var(--text-primary); padding-bottom: calc(var(--nav-height) + 20px); overflow-x: hidden; scroll-behavior: smooth; background: url('https://t3.ftcdn.net/jpg/03/94/94/92/360_F_394949282_FOyFFN53l0juz58dXuKjzl1CQ3Ruuq90.jpg') no-repeat center center fixed; background-size: cover; }
@@ -42,7 +42,13 @@
         .city { font-weight: 500; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 65%; } .val { font-weight: 700; color: var(--text-primary); }
         .card-actions { padding: 10px; border-top: 1px solid #f0f2f5; display: flex; gap: 8px; flex-wrap: wrap; }
         .btn-card-action { flex: 1; padding: 8px; border: none; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 80px; }
-        .btn-status { background: #FFF8E1; color: #b98900; } .btn-add { background: #E7F3FF; color: #1877F2; } .btn-edit { background: #F0F2F5; color: var(--text-secondary); }
+        
+        /* STYLE TOMBOL BARU */
+        .btn-status { background: #FFF8E1; color: #b98900; } 
+        .btn-add { background: #E7F3FF; color: #1877F2; } 
+        .btn-edit { background: #F0F2F5; color: var(--text-secondary); }
+        .btn-delete { background: #fee2e2; color: var(--danger-color); } /* Merah untuk hapus */
+
         .history-header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 0 5px; }
         .history-header-actions h3 { font-size: 16px; font-weight: 700; color: var(--text-primary); }
         .btn-clear-history { background: #fee2e2; color: var(--danger-color); border: none; padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; } .btn-clear-history:active { transform: scale(0.95); }
@@ -133,7 +139,9 @@
     <div class="modal-overlay" id="rangeModal" onclick="closeModal(event, 'rangeModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="modalTitle">Kota</div><div class="modal-subtitle" id="modalSubtitle">Detail</div></div><div class="modal-body"><div class="range-grid" id="modalGrid"></div></div><button class="btn-close" onclick="closeModal(null, 'rangeModal', true)">Tutup</button></div></div>
     <div class="modal-overlay" id="addAccountModal" onclick="closeModal(event, 'addAccountModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title">Tambah Akun Baru</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Nama Akun</label><input type="text" id="newAccName" class="form-input" placeholder="Nama Akun"></div><div class="form-group"><label class="form-label">Status Awal</label><select id="newAccStatus" class="form-select"><option value="gacor">Gacor (Hijau)</option><option value="warn">Peringatan (Kuning)</option><option value="disban">Disban (Merah)</option></select></div><button class="btn-submit" onclick="submitNewAccount()">Buat Akun</button></div></div></div>
     <div class="modal-overlay" id="editValueModal" onclick="closeModal(event, 'editValueModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title">Edit Jumlah Grup</div></div><div class="modal-body"><div id="editValueList" class="edit-list-container"></div><button class="btn-submit" onclick="submitValueChanges()">Simpan Perubahan</button></div></div></div>
-    <div class="modal-overlay" id="confirmModal"><div class="modal-content" style="max-width: 280px;"><div class="modal-header" style="border:none; padding-bottom:0;"><div class="modal-title" style="font-size:16px;" id="confirmTitle">Konfirmasi</div></div><div class="modal-body" style="text-align: center; padding-top:5px;"><p style="color:#65676B; font-size:13px;" id="confirmDesc">Tandai postingan selesai?</p><div class="confirm-actions"><button class="btn-action btn-no" onclick="closeModal(null, 'confirmModal', true)">Batal</button><button class="btn-action btn-yes" id="btnConfirmYes">Ya, Selesai</button></div></div></div></div>
+    
+    <div class="modal-overlay" id="confirmModal"><div class="modal-content" style="max-width: 280px;"><div class="modal-header" style="border:none; padding-bottom:0;"><div class="modal-title" style="font-size:16px;" id="confirmTitle">Konfirmasi</div></div><div class="modal-body" style="text-align: center; padding-top:5px;"><p style="color:#65676B; font-size:13px;" id="confirmDesc">Tandai postingan selesai?</p><div class="confirm-actions"><button class="btn-action btn-no" onclick="closeModal(null, 'confirmModal', true)">Batal</button><button class="btn-action btn-yes" id="btnConfirmYes">Ya</button></div></div></div></div>
+    
     <div class="modal-overlay" id="statusModal" onclick="closeModal(event, 'statusModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title">Ubah Status Akun</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Pilih Status Baru</label><select id="newStatusInput" class="form-select"><option value="gacor">Gacor (Hijau)</option><option value="warn">Peringatan (Kuning)</option><option value="disban">Disban (Merah)</option></select></div><button class="btn-submit" onclick="submitStatusChange()">Simpan Perubahan</button></div></div></div>
     <div class="modal-overlay" id="addCityModal" onclick="closeModal(event, 'addCityModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title">Tambah Kota</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Nama Kota</label><input type="text" id="newCityName" class="form-input" placeholder="Contoh: Surabaya"></div><div class="form-group"><label class="form-label">Jumlah Grup</label><input type="number" id="newCityVal" class="form-input" placeholder="0"></div><button class="btn-submit" onclick="submitNewCity()">Tambah</button></div></div></div>
 
@@ -221,7 +229,7 @@
     window.dbUtama1 = []; window.dbSecondary1 = [];
     window.dbUtama2 = []; window.dbSecondary2 = [];
     window.dbUtama3 = []; window.dbUtama4 = []; window.dbUtama5 = [];
-    window.dbHistory = []; // <-- NEW: Array global untuk history dari firebase
+    window.dbHistory = []; 
 
     // --- 4. BROWSER ICON MAP ---
     const browserMap = {
@@ -258,24 +266,18 @@
             });
         });
 
-        // --- LISTENER KHUSUS HISTORY (REALTIME) ---
+        // --- LISTENER HISTORY ---
         db.ref('history').on('value', (snapshot) => {
             const data = snapshot.val();
-            // Ubah object firebase ke array
             window.dbHistory = data ? Object.values(data) : [];
-            // Sort terbaru di atas
             window.dbHistory.sort((a, b) => b.timestamp - a.timestamp);
 
-            // Jika sedang buka tab history, refresh
             if(document.getElementById('tab-6').classList.contains('active')) {
                 renderHistoryTab();
             }
 
-            // Jika sedang buka modal range, refresh agar tombol hijau otomatis
             if(window.currentOpenModalParams) {
                 const p = window.currentOpenModalParams;
-                // Kita panggil ulang fungsi openRangeModal dengan parameter yg tersimpan
-                // Ini akan me-re-render grid tombol dengan data history terbaru
                 openRangeModal(p.city, p.val, p.acc, p.status, p.db);
             }
         });
@@ -284,7 +286,6 @@
     startFirebaseListeners();
 
     function refreshAllTabs(updatedKey) {
-        // Refresh Tab 1
         if(window.currentSubTab1 === 'utama') {
             if(!window.dbUtama1 || window.dbUtama1.length === 0) showMigrationButton('list-1', 'dbUtama1');
             else renderApp(window.dbUtama1, 'list-1', 'dbUtama1');
@@ -293,7 +294,6 @@
             else renderApp(window.dbSecondary1, 'list-1', 'dbSecondary1');
         }
 
-        // Refresh Tab 2
         if(window.currentSubTab2 === 'utama') {
             if(!window.dbUtama2 || window.dbUtama2.length === 0) showMigrationButton('list-2', 'dbUtama2');
             else renderApp(window.dbUtama2, 'list-2', 'dbUtama2');
@@ -305,7 +305,7 @@
         window.refreshTab3(); 
         window.refreshTab4(); 
         window.refreshTab5();
-        window.refreshDisbanTab(); // Refresh Tab Disban setiap ada update
+        window.refreshDisbanTab(); 
     }
     
     function showMigrationButton(containerId, dbKey) {
@@ -340,18 +340,16 @@
             });
     }
 
-    // --- 7. RENDER DISBAN TAB (BARU) ---
+    // --- 7. RENDER DISBAN TAB (UPDATED WITH DELETE BUTTON) ---
     window.refreshDisbanTab = function() {
         const container = document.getElementById('list-disban');
         container.innerHTML = '';
         let allDisban = [];
 
-        // Helper untuk mengumpulkan akun disban
         const collect = (arr, dbRefName, label) => {
             if(!arr) return;
             arr.forEach((acc, idx) => {
                 if(acc.status === 'disban') {
-                    // Kita simpan info aslinya agar bisa diedit
                     allDisban.push({ ...acc, originalIdx: idx, originalDb: dbRefName, sourceLabel: label });
                 }
             });
@@ -398,10 +396,10 @@
                     <div class="card-actions">
                         <button class="btn-card-action btn-status" onclick="openStatusModal(${akun.originalIdx}, '${akun.originalDb}')"><i class="fas fa-edit"></i> Ubah Status</button>
                         <button class="btn-card-action btn-edit" onclick="openEditValueModal(${akun.originalIdx}, '${akun.originalDb}')"><i class="fas fa-pen"></i> Edit Angka</button>
+                        <button class="btn-card-action btn-delete" onclick="askDeleteAccount(${akun.originalIdx}, '${akun.originalDb}')"><i class="fas fa-trash"></i> Hapus</button>
                     </div>
                 </div>
             `;
-            // Logic card expand
             const header = card.querySelector('.account-header');
             const content = card.querySelector('.account-data-container');
             header.addEventListener('click', () => {
@@ -460,6 +458,7 @@
         else renderApp(window.dbUtama5, 'list-5', 'dbUtama5'); 
     }
 
+    // --- RENDER APP (UPDATED WITH DELETE BUTTON) ---
     window.renderApp = function(data, containerId, dbRefName) {
         const container = document.getElementById(containerId);
         container.innerHTML = '';
@@ -495,6 +494,7 @@
                         <button class="btn-card-action btn-status" onclick="openStatusModal(${index}, '${dbRefName}')"><i class="fas fa-edit"></i> Ubah Status</button>
                         <button class="btn-card-action btn-edit" onclick="openEditValueModal(${index}, '${dbRefName}')"><i class="fas fa-pen"></i> Edit Angka</button>
                         <button class="btn-card-action btn-add" onclick="openAddCityModal(${index}, '${dbRefName}')"><i class="fas fa-plus-circle"></i> Tambah Kota</button>
+                        <button class="btn-card-action btn-delete" onclick="askDeleteAccount(${index}, '${dbRefName}')"><i class="fas fa-trash"></i> Hapus</button>
                     </div>
                 </div>
             `;
@@ -555,15 +555,13 @@
     window.openAddCityModal = function(index, dbRefName) { window.currentEditAccountIndex = index; window.currentEditDb = dbRefName; document.getElementById('newCityName').value = ''; document.getElementById('newCityVal').value = ''; document.getElementById('addCityModal').classList.add('show'); }
     window.submitNewCity = function() { if(window.currentEditAccountIndex === -1) return; const name = document.getElementById('newCityName').value; const val = parseInt(document.getElementById('newCityVal').value); if(name && val > 0) { let targetDb = window[window.currentEditDb]; if(targetDb) { if(!targetDb[window.currentEditAccountIndex].items) targetDb[window.currentEditAccountIndex].items = []; targetDb[window.currentEditAccountIndex].items.push({ city: name, val: val }); saveToFirebase(window.currentEditDb, targetDb); } closeModal(null, 'addCityModal', true); } else alert('Mohon isi nama kota dan jumlah.'); }
 
-    // --- 10. HISTORY (REALTIME FIREBASE) ---
-    // Fungsi check apakah range ini sudah dikerjakan (Cek dari data Firebase local)
+    // --- 10. HISTORY & DELETE LOGIC ---
     window.getHistory = function(accName, city, rangeIndex) { 
         const idToCheck = `${accName}|${city}|${rangeIndex}`;
         const found = window.dbHistory.find(item => item.id === idToCheck);
         return found ? `${found.date} ${found.time}` : null; 
     }
 
-    // Fungsi Simpan ke Firebase (Bukan LocalStorage)
     window.saveHistory = function(accName, city, rangeIndex, actualCount) { 
         const now = new Date(); 
         const dateStr = `${String(now.getDate()).padStart(2,'0')}/${String(now.getMonth()+1).padStart(2,'0')}/${now.getFullYear()}`; 
@@ -581,24 +579,15 @@
         };
 
         db.ref('history').push(newEntry)
-            .then(() => {
-                console.log("History tersimpan");
-                // Refresh modal jika terbuka
-                if(window.currentOpenModalParams) {
-                    const p = window.currentOpenModalParams;
-                    openRangeModal(p.city, p.val, p.acc, p.status, p.db);
-                }
-            })
+            .then(() => { if(window.currentOpenModalParams) { const p = window.currentOpenModalParams; openRangeModal(p.city, p.val, p.acc, p.status, p.db); } })
             .catch(e => alert("Gagal simpan history: " + e.message));
     }
 
     window.toggleHistoryDate = function(headerEl) { headerEl.parentElement.classList.toggle('open'); }
     
-    // Render Tab Riwayat (Mengambil dari window.dbHistory)
     window.renderHistoryTab = function() { 
         const container = document.getElementById('history-container'); 
         const emptyMsg = document.getElementById('no-history-msg'); 
-        
         const logs = window.dbHistory; 
 
         container.innerHTML = ''; 
@@ -634,20 +623,26 @@
         db.ref('history').remove().then(() => { closeModal(null, 'confirmModal', true); }).catch(e => alert("Gagal hapus: " + e.message));
     }
 
-    // Modal Range Logic 
-    window.currentOpenModalParams = null; // Simpan params saat modal dibuka agar bisa direfresh realtime
+    // --- FUNGSI HAPUS AKUN BARU ---
+    window.askDeleteAccount = function(index, dbRefName) {
+        window.pendingAction = { index, dbRefName };
+        window.pendingActionType = 'delete_account';
+        document.getElementById('confirmTitle').innerText = "Hapus Akun?";
+        document.getElementById('confirmDesc').innerText = "Yakin ingin menghapus akun ini secara permanen?";
+        document.getElementById('confirmModal').classList.add('show');
+    }
+
+    // --- RANGE MODAL ---
+    window.currentOpenModalParams = null; 
 
     window.openRangeModal = function(cityName, cityVal, accountName, status, dbRefName) { 
-        // Simpan state saat ini
         window.currentOpenModalParams = { city: cityName, val: cityVal, acc: accountName, status: status, db: dbRefName };
-
         let rangeLimit = 20; 
         if (dbRefName && (dbRefName === 'dbUtama3')) rangeLimit = 15; 
         const rangesCount = Math.ceil(cityVal / rangeLimit); 
         
         document.getElementById('modalTitle').innerText = cityName; 
         document.getElementById('modalSubtitle').innerText = `${accountName} • ${cityVal} Grup (Range ${rangeLimit})`; 
-        
         const modalGrid = document.getElementById('modalGrid'); 
         modalGrid.innerHTML = ''; 
         
@@ -664,7 +659,6 @@
             let min = (i-1)*rangeLimit + 1; 
             let max = (i === rangesCount) ? cityVal : i*rangeLimit; 
             let rangeCount = max - min + 1; 
-            
             const history = getHistory(accountName, cityName, i); 
             const isDone = history !== null; 
             
@@ -689,6 +683,7 @@
         document.getElementById('confirmModal').classList.add('show'); 
     } 
     
+    // --- LISTENER KONFIRMASI (UPDATE) ---
     document.getElementById('btnConfirmYes').addEventListener('click', () => { 
         if (window.pendingActionType === 'clear_history') {
             clearAllHistoryData(); 
@@ -697,7 +692,17 @@
             saveHistory(acc, city, rangeIdx, countVal); 
             closeModal(null, 'confirmModal', true); 
             window.pendingAction = null; 
-        } 
+        } else if (window.pendingActionType === 'delete_account' && window.pendingAction) {
+            // LOGIC HAPUS AKUN
+            const { index, dbRefName } = window.pendingAction;
+            let targetDb = window[dbRefName];
+            if (targetDb) {
+                targetDb.splice(index, 1); // Hapus dari array
+                saveToFirebase(dbRefName, targetDb); // Update ke Firebase
+            }
+            closeModal(null, 'confirmModal', true);
+            window.pendingAction = null;
+        }
     });
     
     window.closeModal = function(e, modalId, force = false) { 
