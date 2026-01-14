@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FB Database Manager V4.7 (Date Protection)</title>
+    <title>FB Database Manager V5.1 (Delete City)</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -62,9 +62,19 @@
         .history-icon { width: 32px; height: 32px; background: #e7f3ff; color: var(--fb-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; }
         .history-content { flex: 1; } .history-title { font-size: 13px; font-weight: 600; color: var(--text-primary); } .history-meta { font-size: 11px; color: var(--text-secondary); margin-top: 1px; } .history-time { font-size: 11px; color: #1877F2; font-weight: 600; }
         .history-count { background: #e7f3ff; padding: 2px 6px; border-radius: 4px; font-size: 10px; color: #1877F2; font-weight: 700; margin-left: 5px; }
+        .badge-total-history { background: #36a420; color: white; padding: 2px 8px; border-radius: 10px; font-size: 10px; margin-left: 10px; }
+
         .form-group { margin-bottom: 12px; text-align: left; } .form-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px; display: block; }
         .form-input, .form-select { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: 13px; } .form-select { background: white; }
-        .edit-list-container { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; } .edit-item-row { display: flex; gap: 8px; align-items: center; } .edit-item-name { flex: 1; font-size: 12px; color: var(--text-secondary); } .edit-item-val { width: 70px; padding: 6px; font-size: 12px; text-align: center; }
+        .edit-list-container { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; } 
+        .edit-item-row { display: flex; gap: 8px; align-items: center; } 
+        .edit-item-name { flex: 1; font-size: 12px; color: var(--text-secondary); } 
+        .edit-item-val { width: 70px; padding: 6px; font-size: 12px; text-align: center; }
+        
+        /* NEW: BUTTON DELETE CITY */
+        .btn-delete-city { background: #fee2e2; color: #fa3e3e; border: none; width: 30px; height: 30px; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; flex-shrink: 0; }
+        .btn-delete-city:active { transform: scale(0.9); }
+
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; height: var(--nav-height); background: #ffffff; border-top: 1px solid #e4e6eb; display: flex; flex-direction: row; justify-content: space-around; align-items: center; z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
         .nav-item { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; font-size: 20px; color: #bcc0c4; position: relative; cursor: pointer; transition: color 0.2s; } .nav-item.active { color: var(--fb-blue); }
         .nav-item.active::after { content: ''; position: absolute; top: 0; width: 50%; height: 3px; background: var(--fb-blue); border-bottom-left-radius: 3px; border-bottom-right-radius: 3px; }
@@ -73,8 +83,18 @@
         .empty-state { text-align: center; padding: 30px 10px; color: #999; font-size: 13px; line-height: 1.6; }
         .btn-migration { background: #36a420; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-weight: 600; margin-top: 10px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); } .btn-migration:active { transform: scale(0.95); }
         
-        /* STYLE KHUSUS TAB DISBAN */
         .disban-info { font-size: 10px; color: #999; margin-top: 5px; display: block; }
+
+        .timer-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; position: relative; overflow: hidden; }
+        .timer-card.ready { border: 1px solid #36a420; }
+        .timer-card.active-timer { border: 1px solid #f7b928; }
+        .timer-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .timer-acc-name { font-weight: 700; color: var(--text-primary); font-size: 14px; }
+        .timer-status-text { font-size: 10px; color: #999; }
+        .timer-display { font-size: 20px; font-family: 'Courier New', monospace; font-weight: 700; color: #f7b928; text-align: center; padding: 10px; background: #fff8e1; border-radius: 8px; margin: 5px 0; }
+        .timer-display.finished { color: white; background: #36a420; font-size: 14px; font-family: 'Inter', sans-serif; }
+        .btn-start-join { width: 100%; background: var(--fb-blue); color: white; border: none; padding: 10px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 12px; }
+        .btn-start-join:disabled { background: #ccc; cursor: not-allowed; }
         
         .desktop-trigger { display: none; }
         @media (min-width: 900px) { .desktop-trigger { display: block; position: fixed; top: 0; right: 0; width: 40px; height: 100vh; z-index: 2001; } body { padding-bottom: 0; overflow: hidden; } .app-container { max-width: 100%; height: 100vh; padding: 15px; margin-right: 0; } .app-header { margin: 0 0 15px 0; padding: 8px 20px; } .tab-content.active { flex: 1; display: flex; flex-direction: column; min-height: 0; } .grid-container { flex: 1; display: grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: 100%; gap: 8px; overflow: hidden; } .account-card { height: 100%; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); } .account-header { padding: 8px; cursor: default; background: #fff; border-bottom: 1px solid #f0f2f5; flex-direction: column; text-align: center; gap: 5px; } .fb-icon-circle { width: 20px; height: 20px; font-size: 10px; margin-bottom: 0; } .acc-name { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block;} .arrow-icon { display: none; } .account-data-container { max-height: none !important; flex: 1; overflow-y: auto; background: #fff; } .data-grid { grid-template-columns: 1fr; padding: 5px; gap: 4px; } .card-actions { flex-direction: column; gap: 4px; padding: 5px; } .bottom-nav { bottom: auto; left: auto; border-top: none; top: 0; right: 0; bottom: 0; width: 85px; height: 100vh; flex-direction: column; justify-content: center; align-items: stretch; background: rgba(255, 255, 255, 0.98); border-left: 1px solid #e4e6eb; transform: translateX(100%); transition: transform 0.4s; padding: 0; gap: 0; } .nav-item { width: 100%; margin: 0; border-radius: 0; font-size: 24px; } .nav-item:hover { background-color: #F2F4F7; color: var(--fb-blue); } .nav-item.active { background-color: #e7f3ff; color: var(--fb-blue); } .nav-item.active::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--fb-blue); } .nav-item.active::after { display: none; } body:has(.desktop-trigger:hover) .bottom-nav, .bottom-nav:hover { transform: translateX(0); } body:has(.desktop-trigger:hover) .app-container, body:has(.bottom-nav:hover) .app-container { margin-right: 85px; width: calc(100% - 85px); } }
@@ -131,14 +151,21 @@
         </section>
         
         <section id="tab-7" class="tab-content">
-            <div class="section-header-wrap"><span class="section-title" style="color: var(--danger-color);">ZONA DISBAN</span></div>
+            <div class="section-header-wrap"><span class="section-title" style="color: var(--danger-color);">ZONA DISBAN (SAMPAH)</span></div>
             <div id="list-disban" class="grid-container"></div>
+        </section>
+
+        <section id="tab-8" class="tab-content">
+            <div class="section-header-wrap"><span class="section-title">Jadwal Masuk Grup (50 Jam)</span></div>
+            <div class="empty-state" style="padding-bottom:10px; font-size:11px;">Akun DISBAN dikumpulkan disini.<br>Klik tombol dibawah untuk memulai timer 50 jam.</div>
+            <div id="list-schedule" style="display: flex; flex-direction: column; gap: 10px;"></div>
         </section>
     </div>
 
     <div class="modal-overlay" id="rangeModal" onclick="closeModal(event, 'rangeModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title" id="modalTitle">Kota</div><div class="modal-subtitle" id="modalSubtitle">Detail</div></div><div class="modal-body"><div class="range-grid" id="modalGrid"></div></div><button class="btn-close" onclick="closeModal(null, 'rangeModal', true)">Tutup</button></div></div>
     <div class="modal-overlay" id="addAccountModal" onclick="closeModal(event, 'addAccountModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title">Tambah Akun Baru</div></div><div class="modal-body"><div class="form-group"><label class="form-label">Nama Akun</label><input type="text" id="newAccName" class="form-input" placeholder="Nama Akun"></div><div class="form-group"><label class="form-label">Status Awal</label><select id="newAccStatus" class="form-select"><option value="gacor">Gacor (Hijau)</option><option value="warn">Peringatan (Kuning)</option><option value="disban">Disban (Merah)</option></select></div><button class="btn-submit" onclick="submitNewAccount()">Buat Akun</button></div></div></div>
-    <div class="modal-overlay" id="editValueModal" onclick="closeModal(event, 'editValueModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title">Edit Jumlah Grup</div></div><div class="modal-body"><div id="editValueList" class="edit-list-container"></div><button class="btn-submit" onclick="submitValueChanges()">Simpan Perubahan</button></div></div></div>
+    
+    <div class="modal-overlay" id="editValueModal" onclick="closeModal(event, 'editValueModal')"><div class="modal-content"><div class="modal-header"><div class="modal-title">Edit Kota & Jumlah</div></div><div class="modal-body"><div id="editValueList" class="edit-list-container"></div><button class="btn-submit" onclick="submitValueChanges()">Simpan Perubahan</button></div></div></div>
     
     <div class="modal-overlay" id="confirmModal"><div class="modal-content" style="max-width: 280px;"><div class="modal-header" style="border:none; padding-bottom:0;"><div class="modal-title" style="font-size:16px;" id="confirmTitle">Konfirmasi</div></div><div class="modal-body" style="text-align: center; padding-top:5px;"><p style="color:#65676B; font-size:13px;" id="confirmDesc">Tandai postingan selesai?</p><div class="confirm-actions"><button class="btn-action btn-no" onclick="closeModal(null, 'confirmModal', true)">Batal</button><button class="btn-action btn-yes" id="btnConfirmYes">Ya</button></div></div></div></div>
     
@@ -153,6 +180,7 @@
         <div class="nav-item" onclick="switchTab(5)"><i class="fas fa-flag"></i></div>
         <div class="nav-item" onclick="switchTab(6)"><i class="fas fa-history"></i></div>
         <div class="nav-item" onclick="switchTab(7)" style="color: var(--danger-color);"><i class="fas fa-ban"></i></div>
+        <div class="nav-item" onclick="switchTab(8)" style="color: #65676B;"><i class="fas fa-user-plus"></i></div>
     </nav>
 
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -175,54 +203,7 @@
 
     // --- 2. DATA LAMA (HARDCODE) ---
     const initialData = {
-        dbUtama1: [
-            {name: "ALDI", status: "gacor", items: [{ city: "Puncak", val: 77 }, { city: "Jakarta", val: 70 }, { city: "Batu", val: 64 }, { city: "Semarang", val: 62 }, { city: "Cirebon", val: 59 }, { city: "Surabaya", val: 55 }, { city: "Yogyakarta", val: 49 }, { city: "Batam", val: 48 }, { city: "Lampung", val: 45 }, { city: "Purwokerto", val: 43 }, { city: "Bandung", val: 42 }, { city: "Jambi", val: 33 }, { city: "Malang", val: 29 }, { city: "Samarinda", val: 29 }, { city: "Bali", val: 28 }, { city: "Balikpapan", val: 23 }, { city: "Banyuwangi", val: 19 }, { city: "Jember", val: 11 }, { city: "Palembang", val: 11 }, { city: "Solo", val: 10 }, { city: "Subang", val: 9 }, { city: "Medan", val: 8 }, { city: "Tawangmangu", val: 7 }, { city: "Dieng", val: 6 }, { city: "Sarangan", val: 4 }, { city: "Pangandaran", val: 3 }, { city: "Jayapura", val: 3 }, { city: "Garut", val: 3 }, { city: "Depok", val: 3 }, { city: "Makassar", val: 2 }, { city: "Wonosobo", val: 2 }, { city: "Palu", val: 1 }, { city: "Ngawi", val: 1 }, { city: "Kediri", val: 1 }]},
-            {name: "REBECCA", status: "warn", items: [{ city: "Puncak", val: 61 }, { city: "Jambi", val: 56 }, { city: "Balikpapan", val: 53 }, { city: "Bali 2", val: 52 }, { city: "Jakarta", val: 50 }, { city: "Bali 1", val: 45 }, { city: "Palembang", val: 36 }, { city: "Jogja", val: 30 }, { city: "Malang", val: 40 }, { city: "Mojokerto", val: 10 }, { city: "Malang 2", val: 44 }]},
-            {name: "NIA", status: "gacor", items: [{ city: "Semarang", val: 63 }, { city: "Puncak", val: 55 }, { city: "Surabaya", val: 52 }, { city: "Bandung", val: 51 }, { city: "Batu", val: 48 }, { city: "Balikpapan", val: 44 }, { city: "Malang", val: 41 }, { city: "Bali", val: 33 }, { city: "Yogyakarta", val: 21 }, { city: "Solo", val: 19 }, { city: "Tulungagung", val: 14 }, { city: "Palembang", val: 11 }]},
-            {name: "ASAFA", status: "gacor", items: [{ city: "Bali", val: 78 }, { city: "Surabaya", val: 74 }, { city: "Bandung", val: 46 }, { city: "Jogja", val: 41 }, { city: "Puncak", val: 41 }, { city: "Cirebon", val: 40 }, { city: "Batu", val: 37 }, { city: "Samarinda", val: 31 }, { city: "Malang", val: 26 }, { city: "Pangandaran", val: 18 }, { city: "Dieng", val: 10 }, { city: "Balikpapan", val: 9 }, { city: "Tawangmangu", val: 8 }, { city: "Makassar", val: 6 }, { city: "Solo", val: 3 }, { city: "Jakarta", val: 2 }, { city: "Ngawi", val: 2 }, { city: "Banyuwangi", val: 1 }, { city: "Garut", val: 1 }]},
-            {name: "ELAINA", status: "disban", items: [{ city: "Yogyakarta", val: 60 }, { city: "Semarang", val: 57 }, { city: "Malang", val: 51 }, { city: "Bali 1", val: 68 }, { city: "Surabaya", val: 39 }, { city: "Jambi", val: 39 }, { city: "Batu", val: 16 }, { city: "Balikpapan", val: 12 }]},
-            {name: "NAURA", status: "warn", items: [{ city: "Malang", val: 51 }, { city: "Surabaya", val: 50 }, { city: "Puncak", val: 50 }, { city: "Batu", val: 49 }, { city: "Surabaya 2", val: 49 }, { city: "Semarang", val: 42 }, { city: "Yogyakarta", val: 41 }, { city: "Balikpapan", val: 35 }, { city: "Banyuwangi", val: 33 }, { city: "Palu", val: 30 }, { city: "Dieng", val: 26 }, { city: "Jakarta", val: 11 }, { city: "Tasikmalaya", val: 10 }, { city: "Bandung", val: 10 }, { city: "Garut", val: 5 }]},
-            {name: "ELON", status: "gacor", items: [{ city: "Malang", val: 80 }, { city: "Bandung 1", val: 80 }, { city: "Tegal", val: 54 }, { city: "Semarang", val: 46 }, { city: "Jambi", val: 40 }, { city: "Palembang", val: 39 }, { city: "Samarinda", val: 37 }, { city: "Surabaya", val: 29 }, { city: "Medan", val: 26 }, { city: "Bandung 3", val: 26 }, { city: "Puncak", val: 18 }, { city: "Batu", val: 17 }]},
-            {name: "SILVI", status: "gacor", items: [{ city: "Malang", val: 52 }, { city: "Semarang", val: 52 }, { city: "Cirebon", val: 49 }, { city: "Yogyakarta", val: 45 }, { city: "Surabaya", val: 40 }, { city: "Banjarmasin", val: 34 }, { city: "Batu", val: 27 }, { city: "Klaten", val: 13 }]}
-        ],
-        dbSecondary1: [
-            {name: "MEYSA", status: "gacor", items: [{ city: "Semarang", val: 67 }, { city: "Cirebon", val: 73 }]},
-            {name: "NOEVRA", status: "gacor", items: [{ city: "Surabaya", val: 40 }, { city: "Malang 1", val: 40 }, { city: "Samarinda", val: 50 }, { city: "Balikpapan", val: 49 }, { city: "Batu", val: 25 }, { city: "Malang 2", val: 26 }, { city: "Palembang", val: 33 }]},
-            {name: "PARAMITA", status: "gacor", items: [{ city: "Jambi", val: 31 }, { city: "Surabaya", val: 76 }, { city: "Semarang", val: 84 }]},
-            {name: "IVY", status: "gacor", items: [{ city: "Malang", val: 53 }, { city: "Semarang", val: 50 }, { city: "Gorontalo", val: 46 }, { city: "Jakarta", val: 50 }, { city: "Surabaya", val: 53 }]},
-            {name: "AFKA", status: "gacor", items: [{ city: "Jambi", val: 30 }]},
-            {name: "NASYA", status: "gacor", items: [{ city: "Batu", val: 16 }, { city: "Malang 1", val: 40 }, { city: "Malang 2", val: 40 }, { city: "Medan", val: 10 }, { city: "Batam", val: 8 }, { city: "Surabaya", val: 11 }]}
-        ],
-        dbUtama2: [
-            {name: "RALIA", status: "disban", items: [{ city: "Yogyakarta", val: 72 }, { city: "Semarang", val: 68 }, { city: "Malang", val: 57 }, { city: "Palembang", val: 54 }, { city: "Surabaya", val: 53 }, { city: "Puncak", val: 49 }, { city: "Bandung", val: 45 }, { city: "Medan", val: 45 }, { city: "Batam", val: 42 }, { city: "Cirebon", val: 35 }, { city: "Batu", val: 33 }, { city: "Balikpapan", val: 26 }, { city: "Dieng", val: 17 }, { city: "Jember", val: 15 }, { city: "Samarinda", val: 14 }, { city: "Pematang Siantar", val: 14 }, { city: "Sarangan", val: 10 }, { city: "Blitar", val: 9 }, { city: "Garut", val: 6 }, { city: "Bali", val: 3 }, { city: "Solo", val: 1 }, { city: "Pangandaran", val: 1 }, { city: "Wonosobo", val: 1 }, { city: "Banyuwangi", val: 1 }]},
-            {name: "ADELIA", status: "gacor", items: [{ city: "Malang", val: 85 }, { city: "Jambi", val: 38 }, { city: "Samarinda", val: 47 }, { city: "Palembang", val: 27 }, { city: "Puncak", val: 27 }, { city: "Semarang", val: 24 }, { city: "Bekasi", val: 13 }]},
-            {name: "JANE", status: "disban", items: [{ city: "Malang", val: 125 }, { city: "Samarinda", val: 45 }, { city: "Purwokerto", val: 36 }]},
-            {name: "ADRIANA", status: "gacor", items: [{ city: "Makassar", val: 45 }, { city: "Jambi", val: 39 }, { city: "Malang", val: 33 }, { city: "Semarang", val: 54 }, { city: "Samarinda", val: 24 }, { city: "Dieng", val: 17 }, { city: "Balikpapan", val: 45 }]},
-            {name: "VERA SISILA", status: "gacor", items: [{ city: "Semarang", val: 80 }, { city: "Jakarta", val: 65 }, { city: "Palembang", val: 49 }, { city: "Samarinda", val: 47 }, { city: "Jambi", val: 25 }, { city: "Dieng", val: 18 }, { city: "Surabaya", val: 18 }]},
-            {name: "ALENA", status: "gacor", items: [{ city: "Semarang", val: 91 }, { city: "Malang", val: 64 }, { city: "BANDUNG", val: 50 }, { city: "Dieng", val: 29 }, { city: "Kediri", val: 27 }, { city: "Batam", val: 14 }]},
-            {name: "MELI", status: "warn", items: [{ city: "Puncak", val: 67 }, { city: "Jakarta 1", val: 50 }, { city: "Semarang", val: 48 }, { city: "Jakarta 2", val: 43 }, { city: "Balikpapan", val: 32 }, { city: "Tasikmalaya", val: 27 }, { city: "Batu", val: 15 }]}
-        ],
-        dbSecondary2: [
-            {name: "MEYSA", status: "gacor", items: [{ city: "Semarang", val: 67 }, { city: "Cirebon", val: 73 }]},
-            {name: "NOEVRA", status: "gacor", items: [{ city: "Surabaya", val: 40 }, { city: "Malang 1", val: 40 }, { city: "Samarinda", val: 50 }, { city: "Balikpapan", val: 49 }, { city: "Batu", val: 25 }, { city: "Malang 2", val: 26 }, { city: "Palembang", val: 33 }]},
-            {name: "PARAMITA", status: "gacor", items: [{ city: "Jambi", val: 31 }, { city: "Surabaya", val: 76 }, { city: "Semarang", val: 84 }]},
-            {name: "IVY", status: "gacor", items: [{ city: "Malang", val: 53 }, { city: "Semarang", val: 50 }, { city: "Gorontalo", val: 46 }, { city: "Jakarta", val: 50 }, { city: "Surabaya", val: 53 }]},
-            {name: "AFKA", status: "gacor", items: [{ city: "Jambi", val: 30 }]},
-            {name: "NASYA", status: "gacor", items: [{ city: "Batu", val: 16 }, { city: "Malang 1", val: 40 }, { city: "Malang 2", val: 40 }, { city: "Medan", val: 10 }, { city: "Batam", val: 8 }, { city: "Surabaya", val: 11 }]},
-            {name: "AZKA", status: "gacor", items: [{ city: "Semarang 1", val: 40 }, { city: "Semarang 2", val: 40 }, { city: "Semarang 3", val: 40 }, { city: "Balikpapan", val: 32 }, { city: "Bandung", val: 10 }]},
-            {name: "FEBRIANA FANPAGE", status: "gacor", items: [{ city: "Samarinda", val: 42 }, { city: "Semarang", val: 32 }, { city: "Malang", val: 27 }]},
-            {name: "ERIKA", status: "gacor", items: [{ city: "Samarinda", val: 50 }, { city: "Balikpapan", val: 22 }, { city: "Semarang", val: 71 }]},
-            {name: "LAVIANA", status: "gacor", items: [{ city: "Palembang", val: 60 }, { city: "Jambi", val: 34 }]},
-            {name: "IZNA", status: "gacor", items: []}
-        ],
-        dbUtama3: [
-            {name: "ALEX", status: "gacor", items: [{ city: "Jakarta", val: 63 }, { city: "Bandung", val: 57 }, { city: "Balikpapan", val: 57 }, { city: "Semarang", val: 46 }, { city: "Palembang", val: 27 }]},
-            {name: "SARAH", status: "gacor", items: [{ city: "Batu", val: 50 }, { city: "Palembang", val: 47 }, { city: "Malang", val: 46 }, { city: "Medan", val: 41 }, { city: "Pontianak", val: 34 }]},
-            {name: "TEDY", status: "gacor", items: [{ city: "Malang", val: 90 }, { city: "Tegal", val: 76 }, { city: "Mojokerto", val: 25 }, { city: "Pinang", val: 9 }]},
-            {name: "SUKI", status: "gacor", items: [{ city: "Puncak", val: 84 }, { city: "Samarinda", val: 29 }, { city: "Palembang", val: 41 }]}
-        ],
-        dbUtama4: [], 
-        dbUtama5: []
+        dbUtama1: [], dbSecondary1: [], dbUtama2: [], dbSecondary2: [], dbUtama3: [], dbUtama4: [], dbUtama5: []
     };
 
     // --- 3. GLOBAL VARIABLES ---
@@ -230,6 +211,7 @@
     window.dbUtama2 = []; window.dbSecondary2 = [];
     window.dbUtama3 = []; window.dbUtama4 = []; window.dbUtama5 = [];
     window.dbHistory = []; 
+    window.joinTimers = {};
 
     // --- 4. BROWSER ICON MAP ---
     const browserMap = {
@@ -266,10 +248,8 @@
             });
         });
 
-        // --- LISTENER HISTORY (UPDATED UNTUK MENYIMPAN KEY) ---
         db.ref('history').on('value', (snapshot) => {
             const data = snapshot.val();
-            // Map object ke array, tapi simpan juga key-nya (fbKey) agar bisa dihapus
             window.dbHistory = data ? Object.entries(data).map(([key, val]) => ({...val, fbKey: key})) : [];
             window.dbHistory.sort((a, b) => b.timestamp - a.timestamp);
 
@@ -280,6 +260,13 @@
             if(window.currentOpenModalParams) {
                 const p = window.currentOpenModalParams;
                 openRangeModal(p.city, p.val, p.acc, p.status, p.db);
+            }
+        });
+
+        db.ref('joinTimers').on('value', (snapshot) => {
+            window.joinTimers = snapshot.val() || {};
+            if(document.getElementById('tab-8').classList.contains('active')) {
+                renderScheduleTab();
             }
         });
     }
@@ -307,24 +294,12 @@
         window.refreshTab4(); 
         window.refreshTab5();
         window.refreshDisbanTab(); 
+        if(document.getElementById('tab-8').classList.contains('active')) renderScheduleTab();
     }
     
     function showMigrationButton(containerId, dbKey) {
         const container = document.getElementById(containerId);
-        const localData = initialData[dbKey];
-        if(localData && localData.length > 0) {
-            container.innerHTML = `
-                <div class="empty-state">
-                    Database Online Kosong.<br>
-                    Data lama ditemukan di kode.<br>
-                    <button class="btn-migration" onclick="saveToFirebase('${dbKey}', initialData['${dbKey}'], true)">
-                        <i class="fas fa-cloud-upload-alt"></i> Upload Data Lama ke Firebase
-                    </button>
-                </div>
-            `;
-        } else {
-            container.innerHTML = `<div class="empty-state">Data Kosong. Silahkan Tambah Akun Baru.</div>`;
-        }
+        container.innerHTML = `<div class="empty-state">Data Kosong. Silahkan Tambah Akun Baru.</div>`;
     }
 
     // --- 6. FIREBASE UPDATE (WRITE) ---
@@ -332,37 +307,18 @@
         if(showLoading) { alert("Sedang mengupload... Jangan tutup halaman."); }
         db.ref(dbKey).set(dataArray)
             .then(() => {
-                console.log("Data tersimpan ke Firebase: " + dbKey);
                 if(showLoading) alert("SUKSES! Data berhasil diupload ke Firebase.");
             })
             .catch((error) => {
                 alert("GAGAL simpan ke Firebase: " + error.message);
-                console.error(error);
             });
     }
 
-    // --- 7. RENDER DISBAN TAB (UPDATED WITH DELETE BUTTON) ---
+    // --- 7. RENDER DISBAN TAB (Tab 7) ---
     window.refreshDisbanTab = function() {
         const container = document.getElementById('list-disban');
         container.innerHTML = '';
-        let allDisban = [];
-
-        const collect = (arr, dbRefName, label) => {
-            if(!arr) return;
-            arr.forEach((acc, idx) => {
-                if(acc.status === 'disban') {
-                    allDisban.push({ ...acc, originalIdx: idx, originalDb: dbRefName, sourceLabel: label });
-                }
-            });
-        };
-
-        collect(window.dbUtama1, 'dbUtama1', 'Db 1 Utama');
-        collect(window.dbSecondary1, 'dbSecondary1', 'Db 1 Secondary');
-        collect(window.dbUtama2, 'dbUtama2', 'Db 2 Utama');
-        collect(window.dbSecondary2, 'dbSecondary2', 'Db 2 Secondary');
-        collect(window.dbUtama3, 'dbUtama3', 'Db 3');
-        collect(window.dbUtama4, 'dbUtama4', 'Db Linux');
-        collect(window.dbUtama5, 'dbUtama5', 'Db Fanpage');
+        let allDisban = collectAllDisban();
 
         if(allDisban.length === 0) {
             container.innerHTML = '<div class="empty-state">Aman! Tidak ada akun yang kena ban.</div>';
@@ -418,6 +374,26 @@
         });
         container.appendChild(fragment);
     }
+    
+    function collectAllDisban() {
+        let allDisban = [];
+        const collect = (arr, dbRefName, label) => {
+            if(!arr) return;
+            arr.forEach((acc, idx) => {
+                if(acc.status === 'disban') {
+                    allDisban.push({ ...acc, originalIdx: idx, originalDb: dbRefName, sourceLabel: label });
+                }
+            });
+        };
+        collect(window.dbUtama1, 'dbUtama1', 'Db 1 Utama');
+        collect(window.dbSecondary1, 'dbSecondary1', 'Db 1 Secondary');
+        collect(window.dbUtama2, 'dbUtama2', 'Db 2 Utama');
+        collect(window.dbSecondary2, 'dbSecondary2', 'Db 2 Secondary');
+        collect(window.dbUtama3, 'dbUtama3', 'Db 3');
+        collect(window.dbUtama4, 'dbUtama4', 'Db Linux');
+        collect(window.dbUtama5, 'dbUtama5', 'Db Fanpage');
+        return allDisban;
+    }
 
     // --- 8. LOGIC UI ---
     window.currentEditAccountIndex = -1;
@@ -459,7 +435,6 @@
         else renderApp(window.dbUtama5, 'list-5', 'dbUtama5'); 
     }
 
-    // --- RENDER APP (UPDATED WITH DELETE BUTTON) ---
     window.renderApp = function(data, containerId, dbRefName) {
         const container = document.getElementById(containerId);
         container.innerHTML = '';
@@ -535,13 +510,41 @@
         closeModal(null, 'addAccountModal', true);
     }
 
+    // --- UPDATED EDIT VALUE MODAL (WITH DELETE CITY) ---
     window.openEditValueModal = function(index, dbRefName) { 
-        window.currentEditAccountIndex = index; window.currentEditDb = dbRefName; const container = document.getElementById('editValueList'); container.innerHTML = ''; 
+        window.currentEditAccountIndex = index; window.currentEditDb = dbRefName; 
+        const container = document.getElementById('editValueList'); container.innerHTML = ''; 
         let targetDb = window[dbRefName]; if(!targetDb) return; 
         let items = targetDb[index].items || []; 
         if(items.length === 0) container.innerHTML = '<div style="text-align:center; font-size:12px; color:#999;">Belum ada kota untuk diedit.</div>'; 
-        else items.forEach((item, idx) => { const row = document.createElement('div'); row.className = 'edit-item-row'; row.innerHTML = `<span class="edit-item-name">${item.city}</span><input type="number" class="form-input edit-item-val" id="edit_val_${idx}" value="${item.val}">`; container.appendChild(row); }); 
+        else items.forEach((item, idx) => { 
+            const row = document.createElement('div'); row.className = 'edit-item-row'; 
+            // ADDED DELETE BUTTON
+            row.innerHTML = `
+                <span class="edit-item-name">${item.city}</span>
+                <input type="number" class="form-input edit-item-val" id="edit_val_${idx}" value="${item.val}">
+                <button class="btn-delete-city" onclick="deleteCity(${idx})"><i class="fas fa-times"></i></button>
+            `; 
+            container.appendChild(row); 
+        }); 
         document.getElementById('editValueModal').classList.add('show'); 
+    }
+
+    // --- NEW: DELETE CITY FUNCTION ---
+    window.deleteCity = function(cityIndex) {
+        if(!confirm('Yakin ingin menghapus kota ini?')) return;
+        
+        let targetDb = window[window.currentEditDb];
+        if(!targetDb) return;
+        
+        // Remove item from array
+        targetDb[window.currentEditAccountIndex].items.splice(cityIndex, 1);
+        
+        // Save to Firebase
+        saveToFirebase(window.currentEditDb, targetDb);
+        
+        // Refresh modal to show changes
+        openEditValueModal(window.currentEditAccountIndex, window.currentEditDb);
     }
 
     window.submitValueChanges = function() { 
@@ -584,7 +587,6 @@
             .catch(e => alert("Gagal simpan history: " + e.message));
     }
     
-    // FUNGSI UNTUK HAPUS HISTORY SPESIFIK (RESET STATUS)
     window.removeSpecificHistory = function(acc, city, rangeIndex) {
         const idToCheck = `${acc}|${city}|${rangeIndex}`;
         const found = window.dbHistory.find(item => item.id === idToCheck);
@@ -611,7 +613,9 @@
         logs.forEach(log => { if (!grouped[log.date]) grouped[log.date] = []; grouped[log.date].push(log); }); 
         
         Object.keys(grouped).forEach((dateStr, index) => { 
-            const items = grouped[dateStr]; 
+            const items = grouped[dateStr];
+            let dailyTotal = items.reduce((sum, item) => sum + (parseInt(item.count) || 0), 0);
+
             const itemsHTML = items.map(item => `
                 <div class="history-item">
                     <div class="history-icon"><i class="fas fa-check"></i></div>
@@ -625,7 +629,14 @@
             const groupDiv = document.createElement('div'); 
             groupDiv.className = 'history-date-group'; 
             if(index === 0) groupDiv.classList.add('open'); 
-            groupDiv.innerHTML = `<div class="history-date-header" onclick="toggleHistoryDate(this)"><span>${dateStr}</span><i class="fas fa-chevron-down history-date-chevron"></i></div><div class="history-items-container">${itemsHTML}</div>`; 
+            
+            groupDiv.innerHTML = `
+                <div class="history-date-header" onclick="toggleHistoryDate(this)">
+                    <div><span>${dateStr}</span><span class="badge-total-history">${dailyTotal} Grup</span></div>
+                    <i class="fas fa-chevron-down history-date-chevron"></i>
+                </div>
+                <div class="history-items-container">${itemsHTML}</div>
+            `; 
             container.appendChild(groupDiv); 
         }); 
     }
@@ -636,18 +647,12 @@
         db.ref('history').remove().then(() => { closeModal(null, 'confirmModal', true); }).catch(e => alert("Gagal hapus: " + e.message));
     }
 
-    // --- FUNGSI HAPUS AKUN BARU ---
     window.askDeleteAccount = function(index, dbRefName) {
         window.pendingAction = { index, dbRefName };
         window.pendingActionType = 'delete_account';
         document.getElementById('confirmTitle').innerText = "Hapus Akun?";
         document.getElementById('confirmDesc').innerText = "Yakin ingin menghapus akun ini secara permanen?";
-        
-        // Reset tombol jadi normal (merah tapi teksnya ya)
-        const btnYes = document.getElementById('btnConfirmYes');
-        btnYes.innerText = "Ya, Hapus";
-        btnYes.className = "btn-action btn-yes danger";
-
+        const btnYes = document.getElementById('btnConfirmYes'); btnYes.innerText = "Ya, Hapus"; btnYes.className = "btn-action btn-yes danger";
         document.getElementById('confirmModal').classList.add('show');
     }
 
@@ -671,7 +676,7 @@
         const btnAll = document.createElement('div'); 
         btnAll.className = isAllDone ? 'range-btn btn-all-range done' : 'range-btn btn-all-range'; 
         btnAll.innerHTML = `<span class="range-label">POSTING SEMUA</span><span class="range-desc">1 - ${cityVal} (Total ${cityVal})</span>${isAllDone ? `<div class="history-info">${historyAll}</div>` : ''}`; 
-        btnAll.onclick = () => askConfirmation(accountName, cityName, 'all', cityVal); 
+        btnAll.onclick = () => askConfirmation(accountName, cityName, 'all', cityVal, status); 
         modalGrid.appendChild(btnAll); 
         
         for(let i = 1; i <= rangesCount; i++) { 
@@ -684,49 +689,64 @@
             const btn = document.createElement('div'); 
             btn.className = isDone ? 'range-btn done' : 'range-btn'; 
             btn.innerHTML = `<span class="range-label">Range ${i}</span><span class="range-desc">${min} - ${max}</span>${isDone ? `<div class="history-info">${history}</div>` : ''}`; 
-            btn.onclick = () => askConfirmation(accountName, cityName, i, rangeCount); 
+            btn.onclick = () => askConfirmation(accountName, cityName, i, rangeCount, status); 
             modalGrid.appendChild(btn); 
         } 
         document.getElementById('rangeModal').classList.add('show'); 
     }
 
+    // --- LOGIC 48 JAM (WARN) ---
+    window.checkCooldown48Hours = function(accName) {
+        const posts = window.dbHistory.filter(x => x.acc === accName);
+        if(posts.length === 0) return true; 
+        const lastPost = posts[0]; 
+        const now = Date.now();
+        const diff = now - lastPost.timestamp;
+        const hours48 = 48 * 60 * 60 * 1000;
+        return diff >= hours48;
+    }
+
     window.pendingAction = null; 
     window.pendingActionType = null; 
     
-    // --- UPDATED LOGIC FOR CONFIRMATION ---
-    window.askConfirmation = function(acc, city, rangeIdx, countVal) { 
+    window.askConfirmation = function(acc, city, rangeIdx, countVal, status) { 
         const existingDate = getHistory(acc, city, rangeIdx);
         
         if (existingDate) {
-            // JIKA SUDAH SELESAI (HIJAU) -> TAWARKAN HAPUS
             window.pendingAction = { acc, city, rangeIdx }; 
             window.pendingActionType = 'delete_specific_history'; 
-            
             document.getElementById('confirmTitle').innerText = "Sudah Selesai";
             document.getElementById('confirmDesc').innerHTML = `Diposting pada: <b>${existingDate}</b><br>Hapus status ini untuk mengulang?`;
-            
             const btnYes = document.getElementById('btnConfirmYes');
-            btnYes.innerText = "Hapus Status";
-            btnYes.className = "btn-action btn-yes danger"; 
-            
+            btnYes.innerText = "Hapus Status"; btnYes.className = "btn-action btn-yes danger"; 
             document.getElementById('confirmModal').classList.add('show');
             return;
         }
 
-        // JIKA BELUM SELESAI (ABU) -> MARK DONE
+        if (status === 'warn') {
+            const isSafe = window.checkCooldown48Hours(acc);
+            if (!isSafe) {
+                window.pendingAction = { acc, city, rangeIdx, countVal }; 
+                window.pendingActionType = 'mark_done';
+                document.getElementById('confirmTitle').innerText = "PERINGATAN 48 JAM";
+                document.getElementById('confirmDesc').innerHTML = `Belum 48 jam dari postingan terakhir!<br><br><b>Apakah Anda yakin ingin tetap memposting?</b>`;
+                const btnYes = document.getElementById('btnConfirmYes');
+                btnYes.innerText = "Ya, Tetap Posting";
+                btnYes.className = "btn-action btn-yes danger"; 
+                document.getElementById('confirmModal').classList.add('show');
+                return;
+            }
+        }
+
         window.pendingAction = { acc, city, rangeIdx, countVal }; 
         window.pendingActionType = 'mark_done'; 
         document.getElementById('confirmTitle').innerText = "Konfirmasi"; 
         document.getElementById('confirmDesc').innerText = "Tandai postingan selesai?"; 
-        
         const btnYes = document.getElementById('btnConfirmYes');
-        btnYes.innerText = "Ya, Selesai";
-        btnYes.className = "btn-action btn-yes";
-
+        btnYes.innerText = "Ya, Selesai"; btnYes.className = "btn-action btn-yes";
         document.getElementById('confirmModal').classList.add('show'); 
     } 
     
-    // --- LISTENER KONFIRMASI (UPDATE) ---
     document.getElementById('btnConfirmYes').addEventListener('click', () => { 
         if (window.pendingActionType === 'clear_history') {
             clearAllHistoryData(); 
@@ -738,14 +758,10 @@
         } else if (window.pendingActionType === 'delete_account' && window.pendingAction) {
             const { index, dbRefName } = window.pendingAction;
             let targetDb = window[dbRefName];
-            if (targetDb) {
-                targetDb.splice(index, 1);
-                saveToFirebase(dbRefName, targetDb);
-            }
+            if (targetDb) { targetDb.splice(index, 1); saveToFirebase(dbRefName, targetDb); }
             closeModal(null, 'confirmModal', true);
             window.pendingAction = null;
         } else if (window.pendingActionType === 'delete_specific_history' && window.pendingAction) {
-            // LOGIC BARU: RESET STATUS
             const { acc, city, rangeIdx } = window.pendingAction;
             removeSpecificHistory(acc, city, rangeIdx);
             closeModal(null, 'confirmModal', true);
@@ -759,9 +775,93 @@
             if(modalId === 'rangeModal') window.currentOpenModalParams = null;
         }
     }
-    
-    // TAB SWITCH LOGIC
-    window.switchTab = function(n) { document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); document.getElementById('tab-'+n).classList.add('active'); document.querySelectorAll('.nav-item')[n-1].classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); if(n === 6) renderHistoryTab(); if(n === 7) refreshDisbanTab(); }
+
+    // --- SCHEDULE TAB ---
+    window.renderScheduleTab = function() {
+        const container = document.getElementById('list-schedule');
+        const allDisban = collectAllDisban();
+        container.innerHTML = '';
+        
+        if (allDisban.length === 0) {
+            container.innerHTML = '<div class="empty-state">Tidak ada akun Disban untuk jadwal.</div>';
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        allDisban.forEach(acc => {
+            const accName = acc.name;
+            const startTime = window.joinTimers[accName] || 0;
+            
+            const card = document.createElement('div');
+            card.className = 'timer-card';
+            card.id = `timer-card-${accName}`;
+            
+            card.innerHTML = `
+                <div class="timer-header">
+                    <div class="timer-acc-name">${accName}</div>
+                    <div class="timer-status-text" id="status-${accName}">Menunggu</div>
+                </div>
+                <div class="timer-display" id="display-${accName}">-- : -- : --</div>
+                <button class="btn-start-join" id="btn-timer-${accName}" onclick="startJoinTimer('${accName}')">Mulai Masuk Grup</button>
+            `;
+            fragment.appendChild(card);
+            
+            if(startTime > 0) {
+                updateTimerUI(accName, startTime);
+            }
+        });
+        container.appendChild(fragment);
+    }
+
+    window.startJoinTimer = function(accName) {
+        if(!confirm(`Mulai timer 50 jam untuk ${accName}?`)) return;
+        const startTime = Date.now();
+        db.ref('joinTimers/' + accName).set(startTime);
+    }
+
+    function updateTimerUI(accName, startTime) {
+        const hours50 = 50 * 60 * 60 * 1000;
+        const now = Date.now();
+        const diff = now - startTime;
+        const remaining = hours50 - diff;
+        
+        const card = document.getElementById(`timer-card-${accName}`);
+        const display = document.getElementById(`display-${accName}`);
+        const status = document.getElementById(`status-${accName}`);
+        const btn = document.getElementById(`btn-timer-${accName}`);
+
+        if(!card) return;
+
+        if (remaining <= 0) {
+            display.innerText = "SIAP MASUK GRUP";
+            display.classList.add('finished');
+            status.innerText = "Waktu Habis";
+            card.classList.add('ready');
+            card.classList.remove('active-timer');
+            btn.innerText = "Reset Timer";
+            btn.onclick = () => { db.ref('joinTimers/' + accName).remove(); };
+        } else {
+            card.classList.add('active-timer');
+            card.classList.remove('ready');
+            status.innerText = "Sedang Berjalan";
+            btn.disabled = true;
+            btn.innerText = "Timer Berjalan...";
+            
+            const h = Math.floor(remaining / (1000 * 60 * 60));
+            const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((remaining % (1000 * 60)) / 1000);
+            display.innerText = `${h}h ${m}m ${s}s`;
+        }
+    }
+
+    setInterval(() => {
+        if(!document.getElementById('tab-8').classList.contains('active')) return;
+        Object.keys(window.joinTimers).forEach(accName => {
+            updateTimerUI(accName, window.joinTimers[accName]);
+        });
+    }, 1000);
+
+    window.switchTab = function(n) { document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active')); document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active')); document.getElementById('tab-'+n).classList.add('active'); document.querySelectorAll('.nav-item')[n-1].classList.add('active'); window.scrollTo({ top: 0, behavior: 'smooth' }); if(n === 6) renderHistoryTab(); if(n === 7) refreshDisbanTab(); if(n === 8) renderScheduleTab(); }
 </script>
 </body>
 </html>
